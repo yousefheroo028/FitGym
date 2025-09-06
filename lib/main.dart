@@ -40,7 +40,7 @@ Future<bool> checkIfAllowed() async {
 
   const allowedDevices = [
     'RKQ1.201217.002',
-    'AE3A.240806.036',
+    'TP1A.220624.014',
   ];
 
   return allowedDevices.contains(deviceId);
