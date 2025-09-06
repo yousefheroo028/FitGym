@@ -4,19 +4,50 @@ import 'package:fit_gym/home_page.dart';
 import 'package:fit_gym/member.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
-class MemberDetails extends StatelessWidget {
+class MemberDetails extends StatefulWidget {
   const MemberDetails({super.key});
 
   @override
+  State<MemberDetails> createState() => _MemberDetailsState();
+}
+
+class _MemberDetailsState extends State<MemberDetails> {
+  File? _imageFile;
+
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImageFromCamera() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera, maxHeight: 720, maxWidth: 720);
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery, maxHeight: 720, maxWidth: 720);
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final Member member = Get.arguments;
+    Member member = Get.arguments;
     var startDate = member.startDate.obs;
     var endDate = member.endDate.obs;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(member.name),
+        centerTitle: true,
       ),
       body: Center(
         child: Padding(
@@ -30,7 +61,9 @@ class MemberDetails extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                    image: FileImage(File(member.profileImageURL)),
+                    image: member.profileImageURL != null
+                        ? FileImage(File(member.profileImageURL!))
+                        : AssetImage('assets/icon/placeholder.jpeg'),
                     fit: BoxFit.contain,
                   ),
                   border: Border.all(color: Colors.blue, width: 1),
@@ -116,7 +149,7 @@ class MemberDetails extends StatelessWidget {
                     ElevatedButton.icon(
                       onPressed: () async {
                         await member.delete();
-                        Get.off(const HomePage());
+                        Get.offAll(const HomePage());
                       },
                       label: Text('deleteMember'.tr),
                       icon: const Icon(Icons.delete_outline),
@@ -136,6 +169,30 @@ class MemberDetails extends StatelessWidget {
                       label: Text('renewMember'.tr),
                       icon: const Icon(Icons.autorenew),
                     ),
+                    if (member.profileImageURL == null)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              await _pickImageFromGallery();
+                              member.profileImageURL = _imageFile?.path;
+                              await member.save();
+                            },
+                            icon: const Icon(Icons.photo_size_select_actual_outlined),
+                            label: Text('pickPhoto'.tr),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              await _pickImageFromCamera();
+                              member.profileImageURL = _imageFile?.path;
+                              await member.save();
+                            },
+                            icon: const Icon(Icons.camera_alt_outlined),
+                            label: Text('takePhoto'.tr),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),

@@ -39,8 +39,8 @@ Future<bool> checkIfAllowed() async {
   deviceId = androidInfo.id;
 
   const allowedDevices = [
-    'AE3A.240806.03a6',
     'RKQ1.201217.002',
+    'AE3A.240806.036',
   ];
 
   return allowedDevices.contains(deviceId);
@@ -93,9 +93,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.white,
           elevation: 10,
           selectedItemColor: Colors.blue,
-          // لون الأيقونة/النص المختار
           unselectedItemColor: Colors.grey,
-          // لون الأيقونات الغير مختارة
           selectedLabelStyle: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,

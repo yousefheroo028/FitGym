@@ -3,37 +3,6 @@ import 'package:get/get.dart';
 class Languages extends Translations {
   @override
   Map<String, Map<String, String>> get keys => {
-        'en_US': {
-          'nameOfPlayer': 'Name: @name',
-          'startDateOfPlayer': 'Start Date: @date',
-          'endDateOfPlayer': 'End Date: @date',
-          'subscriptionBudget': 'Budget: @price EGP',
-          'showDetails': 'Show Details',
-          'phoneNumberOfPlayer': 'Phone Number: @phoneNumber',
-          'personalInfo': 'Personal Data',
-          'subscriptionInfo': 'Subscription Details',
-          'aboutDeveloper': 'About Developer',
-          'appDescribtion': 'It\'s an App helps GYM Owners to manage their work.',
-          'developerInfo': 'Developed by Youssef Hassan.',
-          'addNewPlayer': 'Add New Player',
-          'enterPhone': 'Enter Mobile Phone Number',
-          'enterBudget': 'Enter Price of Subscription',
-          'homePage': 'Home Page',
-          'about': 'About',
-          'deleteMember': 'Delete',
-          'editMember': 'Edit Data',
-          'renewMember': 'Renew Subscription',
-          'takePhoto': 'Take a Photo',
-          'pickPhoto': 'Pick a Photo',
-          'invalidBudgetValue': 'Budget Cannot be Negative',
-          'completeData': 'Complete the rest of Data',
-          'memberAdded': 'Member has been added successfully',
-          'editDataOf': 'Edit Date of @name',
-          'renewSucceded': 'Subscription has been renewed successfully',
-          'enterName': 'Enter the Name',
-          'noMatchedPlayer': 'There is no Player',
-          "nameOfMember": "Write Name Of Player"
-        },
         'ar_AE': {
           'nameOfPlayer': 'الاسم: @name',
           'startDateOfPlayer': 'تاريخ بداية الاشتراك: @date',

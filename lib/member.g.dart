@@ -21,7 +21,7 @@ class MemberAdapter extends TypeAdapter<Member> {
       startDate: fields[1] as DateTime,
       endDate: fields[2] as DateTime,
       subscriptionBudget: fields[3] as double,
-      profileImageURL: fields[4] as String,
+      profileImageURL: fields[4] as String?,
       phoneNumber: fields[5] as String,
     );
   }

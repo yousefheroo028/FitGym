@@ -140,7 +140,9 @@ class MemberCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                    image: FileImage(File(member.profileImageURL)),
+                    image: member.profileImageURL != null
+                        ? FileImage(File(member.profileImageURL!))
+                        : AssetImage('assets/icon/placeholder.jpeg'),
                     fit: BoxFit.cover,
                   ),
                   border: Border.all(color: Colors.blue, width: 3),

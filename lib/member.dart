@@ -13,7 +13,7 @@ class Member extends HiveObject {
   @HiveField(3)
   final double subscriptionBudget;
   @HiveField(4)
-  final String profileImageURL;
+  String? profileImageURL;
   @HiveField(5)
   final String phoneNumber;
 
@@ -22,7 +22,7 @@ class Member extends HiveObject {
     required this.startDate,
     required this.endDate,
     required this.subscriptionBudget,
-    required this.profileImageURL,
+    this.profileImageURL,
     required this.phoneNumber,
   });
 

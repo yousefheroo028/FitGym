@@ -135,13 +135,13 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                       budgetController.text.isNotEmpty) {
                     if (budgetController.text.toDouble() > 0) {
                       await memberBox.put(
-                        nameController.text,
+                        phoneNumberController.text,
                         Member(
                           name: nameController.text,
                           startDate: DateTime.now(),
                           endDate: DateTime.now().add(Duration(days: 30)),
                           subscriptionBudget: budgetController.text.toDouble(),
-                          profileImageURL: _imageFile!.path,
+                          profileImageURL: _imageFile?.path,
                           phoneNumber: phoneNumberController.text,
                         ),
                       );
