@@ -22,10 +22,9 @@ class AboutPage extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundColor: Colors.blue.shade100,
-                child: const Icon(Icons.fitness_center, size: 50, color: Colors.blue),
+                backgroundColor: Colors.transparent,
+                child: Image.asset('assets/icon/logo.png'),
               ),
-              const SizedBox(height: 16),
               const Text(
                 "FIT GYM",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),

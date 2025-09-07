@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
 
 import 'home_page.dart';
 
@@ -14,6 +15,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await inittHive();
   bool allowed = await checkIfAllowed();
+  await findSystemLocale();
   runApp(
     allowed
         ? const MyApp()
@@ -41,6 +43,8 @@ Future<bool> checkIfAllowed() async {
   const allowedDevices = [
     'RKQ1.201217.002',
     'TP1A.220624.014',
+    'AE3A.240806.036',
+    'HONORBRC-N21',
   ];
 
   return allowedDevices.contains(deviceId);
@@ -151,6 +155,9 @@ class NotAllowedPage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: Text(deviceId),
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),

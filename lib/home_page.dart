@@ -9,104 +9,37 @@ import 'about_page.dart';
 import 'add_player_page.dart';
 import 'member.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final memberSearchController = TextEditingController();
-
-  @override
-  void dispose() {
-    memberSearchController.dispose();
-    super.dispose();
-  }
-
-  var _pageIndex = 0;
-
-  @override
   Widget build(BuildContext context) {
-    final memberList = memberBox.values.toList().obs;
+    final pageIndex = 0.obs;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: _pageIndex == 0
-          ? AppBar(
-              centerTitle: true,
-              title: const Text('FIT GYM'),
-            )
-          : null,
-      body: IndexedStack(
-        index: _pageIndex,
-        children: [
-          SizedBox(
-            width: context.width,
-            child: Column(
-              spacing: 8.0,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox.shrink(),
-                SizedBox(
-                  width: 340,
-                  child: TextField(
-                    controller: memberSearchController,
-                    autocorrect: true,
-                    decoration: InputDecoration(
-                      hintText: 'nameOfMember'.tr,
-                      suffixIcon: const Icon(Icons.search),
-                      suffixIconColor: Colors.black.withValues(alpha: 0.6),
-                    ),
-                    onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                    onChanged: (value) => memberList.assignAll(memberBox.values.where((member) => member.name.contains(value))),
-                  ),
-                ),
-                Expanded(
-                  child: SizedBox(
-                    height: 300,
-                    child: memberList.isNotEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Obx(
-                              () => GridView.count(
-                                crossAxisCount: 2,
-                                physics: BouncingScrollPhysics(),
-                                children: [
-                                  for (final member in memberList)
-                                    InkWell(
-                                      onTap: () {
-                                        Get.to(() => const MemberDetails(), arguments: member);
-                                      },
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: MemberCard(member: member),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : Text('noMatchedPlayer'.tr),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const AddPlayerPage(),
-          const AboutPage(),
-        ],
+      body: Obx(
+        () => IndexedStack(
+          index: pageIndex.value,
+          children: [
+            const Players(),
+            const AddPlayerPage(),
+            const AboutPage(),
+          ],
+        ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: (index) => setState(() {
-          _pageIndex = index;
-        }),
-        elevation: 0,
-        currentIndex: _pageIndex,
-        items: [
-          BottomNavigationBarItem(icon: const Icon(Icons.home), label: 'homePage'.tr),
-          BottomNavigationBarItem(icon: const Icon(Icons.add), label: 'addNewPlayer'.tr),
-          BottomNavigationBarItem(icon: const Icon(Icons.question_mark), label: 'about'.tr),
-        ],
+      bottomNavigationBar: Obx(
+        () => BottomNavigationBar(
+          onTap: (index) => pageIndex.value = index,
+          elevation: 0,
+          currentIndex: pageIndex.value,
+          showUnselectedLabels: false,
+          items: [
+            BottomNavigationBarItem(icon: const Icon(Icons.home), label: 'homePage'.tr),
+            BottomNavigationBarItem(icon: const Icon(Icons.add), label: 'addNewPlayer'.tr),
+            BottomNavigationBarItem(icon: const Icon(Icons.question_mark), label: 'about'.tr),
+          ],
+        ),
       ),
     );
   }
@@ -155,6 +88,84 @@ class MemberCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class Players extends StatefulWidget {
+  const Players({super.key});
+
+  @override
+  State<Players> createState() => _PlayersState();
+}
+
+class _PlayersState extends State<Players> {
+  final memberSearchController = TextEditingController();
+
+  @override
+  void dispose() {
+    memberSearchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final memberList = memberBox.values.toList().obs;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('FIT GYM'),
+        centerTitle: true,
+      ),
+      body: SizedBox(
+        width: context.width,
+        child: Column(
+          spacing: 8.0,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: memberSearchController,
+                autocorrect: true,
+                decoration: InputDecoration(
+                  hintText: 'nameOfMember'.tr,
+                  suffixIcon: const Icon(Icons.search),
+                  suffixIconColor: Colors.black.withValues(alpha: 0.6),
+                ),
+                onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                onChanged: (value) => memberList.assignAll(memberBox.values.where((member) => member.name.contains(value))),
+              ),
+            ),
+            Expanded(
+              child: SizedBox(
+                height: 300,
+                child: memberList.isNotEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Obx(
+                          () => GridView.count(
+                            crossAxisCount: 2,
+                            physics: BouncingScrollPhysics(),
+                            children: [
+                              for (final member in memberList)
+                                InkWell(
+                                  onTap: () {
+                                    Get.to(() => const MemberDetails(), arguments: member);
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: MemberCard(member: member),
+                                ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : Text('noMatchedPlayer'.tr),
+              ),
+            ),
+          ],
         ),
       ),
     );
