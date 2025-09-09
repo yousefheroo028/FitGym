@@ -30,14 +30,16 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
     super.dispose();
   }
 
-  Rxn<File?>? _imageFile;
+  File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImageFromCamera() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera, maxHeight: 720, maxWidth: 720);
 
     if (pickedFile != null) {
-      _imageFile!.value = File(pickedFile.path);
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
     }
   }
 
@@ -45,14 +47,18 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery, maxHeight: 720, maxWidth: 720);
 
     if (pickedFile != null) {
-      _imageFile!.value = File(pickedFile.path);
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
     }
   }
 
   final start = DateTime.now().obs;
+  final end = DateTime.now().add(const Duration(days: 30)).obs;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
         title: Text('addNewPlayer'.tr),
@@ -60,132 +66,140 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
       body: Form(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: SingleChildScrollView(
-            child: Obx(
-              () => Column(
-                spacing: 16.0,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: nameController.value,
-                    onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                    decoration: InputDecoration(
-                      hintText: 'enterName'.tr,
-                      enabledBorder: InputBorder.none,
-                      fillColor: Colors.grey.withValues(alpha: 0.1),
-                      suffixIcon: Icon(
-                        Icons.text_fields,
-                        color: Colors.grey.withValues(alpha: 0.6),
-                      ),
+          child: Obx(
+            () => Column(
+              spacing: 16.0,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: nameController.value,
+                  onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                  decoration: InputDecoration(
+                    hintText: 'enterName'.tr,
+                    enabledBorder: InputBorder.none,
+                    fillColor: Colors.grey.withValues(alpha: 0.1),
+                    suffixIcon: Icon(
+                      Icons.text_fields,
+                      color: Colors.grey.withValues(alpha: 0.6),
                     ),
                   ),
-                  TextFormField(
-                    keyboardType: TextInputType.numberWithOptions(signed: false),
-                    controller: phoneNumberController.value,
-                    onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                    decoration: InputDecoration(
-                      hintText: 'enterPhone'.tr,
-                      enabledBorder: InputBorder.none,
-                      fillColor: Colors.grey.withValues(alpha: 0.1),
-                      suffixIcon: Icon(
-                        Icons.phone,
-                        color: Colors.grey.withValues(alpha: 0.6),
-                      ),
+                ),
+                TextFormField(
+                  keyboardType: TextInputType.numberWithOptions(signed: false),
+                  controller: phoneNumberController.value,
+                  onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                  decoration: InputDecoration(
+                    hintText: 'enterPhone'.tr,
+                    enabledBorder: InputBorder.none,
+                    fillColor: Colors.grey.withValues(alpha: 0.1),
+                    suffixIcon: Icon(
+                      Icons.phone,
+                      color: Colors.grey.withValues(alpha: 0.6),
                     ),
                   ),
-                  TextFormField(
-                    controller: budgetController.value,
-                    onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                    keyboardType: TextInputType.numberWithOptions(),
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      hintText: 'enterBudget'.tr,
-                      enabledBorder: InputBorder.none,
-                      fillColor: Colors.grey.withValues(alpha: 0.1),
-                      suffixIcon: Icon(
-                        Icons.attach_money,
-                        color: Colors.grey.withValues(alpha: 0.6),
-                      ),
+                ),
+                TextFormField(
+                  controller: budgetController.value,
+                  onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                  keyboardType: TextInputType.numberWithOptions(),
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    hintText: 'enterBudget'.tr,
+                    enabledBorder: InputBorder.none,
+                    fillColor: Colors.grey.withValues(alpha: 0.1),
+                    suffixIcon: Icon(
+                      Icons.attach_money,
+                      color: Colors.grey.withValues(alpha: 0.6),
                     ),
                   ),
-                  DateTimeFormField(
-                    decoration: InputDecoration(
-                      labelText: 'enterStartDate'.tr,
-                      enabledBorder: InputBorder.none,
+                ),
+                DateTimeFormField(
+                  decoration: InputDecoration(
+                    labelText: 'enterStartDate'.tr,
+                    enabledBorder: InputBorder.none,
+                    labelStyle: TextStyle(color: Colors.grey[500]),
+                  ),
+                  initialPickerDateTime: DateTime.now(),
+                  onChanged: (value) {
+                    start.value = value ?? DateTime.now();
+                  },
+                  mode: DateTimeFieldPickerMode.date,
+                ),
+                DateTimeFormField(
+                  decoration: InputDecoration(
+                    labelText: 'enterEndDate'.tr,
+                    enabledBorder: InputBorder.none,
+                    labelStyle: TextStyle(color: Colors.grey[500]),
+                  ),
+                  initialPickerDateTime: DateTime.now().add(const Duration(days: 30)),
+                  onChanged: (value) {
+                    end.value = value ?? DateTime.now().add(const Duration(days: 30));
+                  },
+                  mode: DateTimeFieldPickerMode.date,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await _pickImageFromGallery();
+                      },
+                      icon: const Icon(Icons.photo_size_select_actual_outlined),
+                      label: Text('pickPhoto'.tr),
                     ),
-                    firstDate: DateTime.now().subtract(const Duration(days: 31)),
-                    lastDate: DateTime.now(),
-                    initialPickerDateTime: DateTime.now(),
-                    onChanged: (value) {
-                      start.value = value ?? DateTime.now();
-                    },
-                    mode: DateTimeFieldPickerMode.date,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          await _pickImageFromGallery();
-                        },
-                        icon: const Icon(Icons.photo_size_select_actual_outlined),
-                        label: Text('pickPhoto'.tr),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          await _pickImageFromCamera();
-                        },
-                        icon: const Icon(Icons.camera_alt_outlined),
-                        label: Text('takePhoto'.tr),
-                      ),
-                    ],
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (nameController.value.text.isNotEmpty &&
-                          phoneNumberController.value.text.isNotEmpty &&
-                          budgetController.value.text.isNotEmpty) {
-                        if (budgetController.value.text.toDouble() > 0) {
-                          await memberBox.put(
-                            phoneNumberController.value.text,
-                            Member(
-                              name: nameController.value.text,
-                              startDate: start.value,
-                              endDate: start.value.add(const Duration(days: 30)),
-                              subscriptionBudget: budgetController.value.text.toDouble(),
-                              profileImageURL: _imageFile?.value?.path,
-                              phoneNumber: phoneNumberController.value.text,
-                            ),
-                          );
-                          Get.snackbar(
-                            'memberAdded'.tr,
-                            ' ',
-                          );
-                          nameController.value.text = '';
-                          phoneNumberController.value.text = '';
-                          budgetController.value.text = '';
-                          start.value = DateTime.now();
-                          _imageFile?.value = null;
-                        } else {
-                          Get.snackbar('invalidBudgetValue'.tr, ' ');
-                        }
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await _pickImageFromCamera();
+                      },
+                      icon: const Icon(Icons.camera_alt_outlined),
+                      label: Text('takePhoto'.tr),
+                    ),
+                  ],
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (nameController.value.text.isNotEmpty &&
+                        phoneNumberController.value.text.isNotEmpty &&
+                        budgetController.value.text.isNotEmpty) {
+                      if (budgetController.value.text.toDouble() > 0) {
+                        await memberBox.put(
+                          phoneNumberController.value.text,
+                          Member(
+                            name: nameController.value.text,
+                            startDate: start.value,
+                            endDate: end.value,
+                            subscriptionBudget: budgetController.value.text.toDouble(),
+                            profileImageURL: _imageFile?.path,
+                            phoneNumber: phoneNumberController.value.text,
+                          ),
+                        );
+                        Get.snackbar(
+                          'memberAdded'.tr,
+                          ' ',
+                        );
+                        nameController.value.text = '';
+                        phoneNumberController.value.text = '';
+                        budgetController.value.text = '';
+                        start.value = DateTime.now();
+                        end.value = DateTime.now().add(const Duration(days: 30));
+                        _imageFile = null;
+                        setState(() {});
                       } else {
-                        Get.snackbar('completeData'.tr, ' ');
+                        Get.snackbar('invalidBudgetValue'.tr, ' ');
                       }
-                    },
-                    child: Text('addNewPlayer'.tr),
+                    } else {
+                      Get.snackbar('completeData'.tr, ' ');
+                    }
+                  },
+                  child: Text('addNewPlayer'.tr),
+                ),
+                if (_imageFile != null)
+                  Expanded(
+                    child: Image.file(_imageFile!),
                   ),
-                  if (_imageFile?.value != null)
-                    Expanded(
-                      child: Image.file(
-                        _imageFile!.value!,
-                        gaplessPlayback: true,
-                      ),
-                    ),
-                ],
-              ),
+              ],
             ),
           ),
         ),

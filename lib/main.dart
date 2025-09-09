@@ -13,7 +13,7 @@ import 'home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await inittHive();
+  await initHive();
   bool allowed = await checkIfAllowed();
   await findSystemLocale();
   runApp(
@@ -29,7 +29,7 @@ Future<void> main() async {
 late final String deviceId;
 late final Box<Member> memberBox;
 
-Future<void> inittHive() async {
+Future<void> initHive() async {
   await Hive.initFlutter();
   Hive.registerAdapter(MemberAdapter());
   memberBox = await Hive.openBox<Member>('members');
@@ -44,6 +44,7 @@ Future<bool> checkIfAllowed() async {
     'RKQ1.201217.002',
     'TP1A.220624.014',
     'AE3A.240806.036',
+    'TP1A.220624.014',
     'HONORBRC-N21',
   ];
 
@@ -57,7 +58,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const HomePage(),
+      home: HomePage(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,

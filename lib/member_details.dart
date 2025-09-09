@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:dartx/dartx.dart';
 import 'package:fit_gym/home_page.dart';
 import 'package:fit_gym/member.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -41,8 +43,7 @@ class _MemberDetailsState extends State<MemberDetails> {
   @override
   Widget build(BuildContext context) {
     Member member = Get.arguments;
-    var startDate = member.startDate.obs;
-    var endDate = member.endDate.obs;
+    final months = 1.obs;
 
     return Scaffold(
       appBar: AppBar(
@@ -108,34 +109,30 @@ class _MemberDetailsState extends State<MemberDetails> {
                     ),
                   ],
                 ),
-                Obx(
-                  () => Text(
-                    'startDateOfPlayer'.trParams(
-                      {
-                        "date": '${startDate.value.year} / ${startDate.value.month} / ${startDate.value.day}',
-                      },
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  'startDateOfPlayer'.trParams(
+                    {
+                      "date": '${member.startDate.year} / ${member.startDate.month} / ${member.startDate.day}',
+                    },
                   ),
-                ),
-                Obx(
-                  () => Text(
-                    'endDateOfPlayer'.trParams(
-                      {
-                        "date": '${endDate.value.year} / ${endDate.value.month} / ${endDate.value.day}',
-                      },
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  member.getRemainingTime >= 0
+                  'endDateOfPlayer'.trParams(
+                    {
+                      "date": '${member.endDate.year} / ${member.endDate.month} / ${member.endDate.day}',
+                    },
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  member.getRemainingTime > 0
                       ? 'daysLeft'.trParams(
                           {
                             "days":
-                                '${member.getRemainingTime + 1 > 2 ? '${member.getRemainingTime + 1} ' : ''}${member.getRemainingTime > 2 ? member.getRemainingTime > 10 ? 'يوم' : 'أيام' : member.getRemainingTime == 1 ? 'يومين ' : 'يوم'}',
+                                '${member.getRemainingTime > 2 ? '${member.getRemainingTime} ' : ''}${member.getRemainingTime > 2 ? member.getRemainingTime > 10 ? 'يوم' : 'أيام' : member.getRemainingTime == 2 ? 'يومين ' : 'يوم'}',
                           },
                         )
                       : 'الاشتراك خلص',
@@ -154,31 +151,45 @@ class _MemberDetailsState extends State<MemberDetails> {
                 const Divider(),
                 SizedBox(
                   width: context.width,
-                  child: Wrap(
-                    spacing: 16.0,
-                    runSpacing: 8.0,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          await member.delete();
-                          Get.offAll(() => const HomePage());
-                        },
-                        label: Text('deleteMember'.tr),
-                        icon: const Icon(Icons.delete_outline),
-                      ),
-                      ElevatedButton.icon(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      await member.delete();
+                      Get.offAll(() => const HomePage());
+                    },
+                    label: Text('deleteMember'.tr),
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  spacing: 16.0,
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
                         onPressed: () async {
                           member.startDate = DateTime.now();
-                          member.endDate = member.startDate.add(const Duration(days: 30));
-                          startDate.value = member.startDate;
-                          endDate.value = member.endDate;
+                          member.endDate = member.startDate.add(
+                            Duration(days: 30 * months.value),
+                          );
                           await member.save();
+                          setState(() {});
                           Get.snackbar(
                             'renewSucceded'.tr,
-                            ' ',
+                            'renewMonths'.trParams(
+                              {
+                                "months": months.value == 1
+                                    ? 'شهر'
+                                    : months.value == 2
+                                        ? 'شهرين'
+                                        : '${months.value} شهور',
+                              },
+                            ),
+                            backgroundColor: Colors.blue.withValues(alpha: 0.9),
+                            colorText: Colors.white,
+                            borderRadius: 12,
+                            margin: const EdgeInsets.all(12),
+                            icon: const Icon(Icons.check_circle, color: Colors.white),
                           );
-                          setState(() {});
                         },
                         style: ButtonStyle(
                           foregroundColor: WidgetStatePropertyAll(member.getRemainingTime < 4 ? Colors.red : Colors.white),
@@ -186,33 +197,58 @@ class _MemberDetailsState extends State<MemberDetails> {
                         label: Text('renewMember'.tr),
                         icon: const Icon(Icons.autorenew),
                       ),
-                      if (member.profileImageURL == null)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: () async {
-                                await _pickImageFromGallery();
-                                member.profileImageURL = _imageFile?.path;
-                                await member.save();
-                              },
-                              icon: const Icon(Icons.photo_size_select_actual_outlined),
-                              label: Text('pickPhoto'.tr),
+                    ),
+                    Expanded(
+                      child: TextField(
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          label: Text(
+                            'عدد شهور التجديد',
+                            style: TextStyle(
+                              color: Colors.black.withValues(alpha: 0.3),
                             ),
-                            ElevatedButton.icon(
-                              onPressed: () async {
-                                await _pickImageFromCamera();
-                                member.profileImageURL = _imageFile?.path;
-                                await member.save();
-                              },
-                              icon: const Icon(Icons.camera_alt_outlined),
-                              label: Text('takePhoto'.tr),
-                            ),
-                          ],
+                          ),
                         ),
+                        onChanged: (value) => months.value = value.isNotEmpty
+                            ? value.toInt() == 0
+                                ? 1
+                                : value.toInt()
+                            : 1,
+                      ),
+                    ),
+                  ],
+                ),
+                if (member.profileImageURL == null)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    spacing: 16.0,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            await _pickImageFromGallery();
+                            member.profileImageURL = _imageFile?.path;
+                            await member.save();
+                          },
+                          icon: const Icon(Icons.photo_size_select_actual_outlined),
+                          label: Text('pickPhoto'.tr),
+                        ),
+                      ),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            await _pickImageFromCamera();
+                            member.profileImageURL = _imageFile?.path;
+                            await member.save();
+                          },
+                          icon: const Icon(Icons.camera_alt_outlined),
+                          label: Text('takePhoto'.tr),
+                        ),
+                      ),
                     ],
                   ),
-                ),
               ],
             ),
           ),
