@@ -90,14 +90,31 @@ class _MemberDetailsState extends State<MemberDetails> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  'phoneNumberOfPlayer'.trParams(
-                    {
-                      "phoneNumber": member.phoneNumber,
-                    },
+                InkWell(
+                  onLongPress: () => Clipboard.setData(ClipboardData(text: member.phoneNumber)).then(
+                    (value) => Get.snackbar(
+                      'copied'.tr,
+                      'numberCopied'.trParams(
+                        {
+                          "name": member.name,
+                        },
+                      ),
+                      backgroundColor: Colors.blue.withValues(alpha: 0.5),
+                      colorText: Colors.white,
+                      borderRadius: 12,
+                      margin: const EdgeInsets.all(12),
+                      icon: const Icon(Icons.check_circle, color: Colors.white),
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: Text(
+                    'phoneNumberOfPlayer'.trParams(
+                      {
+                        "phoneNumber": member.phoneNumber,
+                      },
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const Divider(),
                 Row(
@@ -165,6 +182,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                   spacing: 16.0,
                   children: [
                     Expanded(
+                      flex: 3,
                       child: ElevatedButton.icon(
                         onPressed: () async {
                           member.startDate = DateTime.now();
@@ -184,7 +202,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                                         : '${months.value} شهور',
                               },
                             ),
-                            backgroundColor: Colors.blue.withValues(alpha: 0.9),
+                            backgroundColor: Colors.blue.withValues(alpha: 0.5),
                             colorText: Colors.white,
                             borderRadius: 12,
                             margin: const EdgeInsets.all(12),
@@ -199,6 +217,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                       ),
                     ),
                     Expanded(
+                      flex: 2,
                       child: TextField(
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -208,6 +227,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                             'عدد شهور التجديد',
                             style: TextStyle(
                               color: Colors.black.withValues(alpha: 0.3),
+                              fontSize: 13,
                             ),
                           ),
                         ),

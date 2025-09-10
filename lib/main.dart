@@ -1,3 +1,5 @@
+import 'dart:io' show File;
+
 import 'package:fit_gym/languages/langs.dart';
 import 'package:fit_gym/member.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -27,7 +29,7 @@ Future<void> main() async {
 }
 
 late final String deviceId;
-late final Box<Member> memberBox;
+late Box<Member> memberBox;
 
 Future<void> initHive() async {
   await Hive.initFlutter();

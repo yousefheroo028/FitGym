@@ -4,6 +4,7 @@ import 'package:dartx/dartx.dart';
 import 'package:fit_gym/main.dart';
 import 'package:fit_gym/member.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show FilteringTextInputFormatter, LengthLimitingTextInputFormatter;
 import 'package:get/get.dart';
 import 'package:date_field/date_field.dart';
 import 'package:image_picker/image_picker.dart';
@@ -55,6 +56,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
 
   final start = DateTime.now().obs;
   final end = DateTime.now().add(const Duration(days: 30)).obs;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,7 +87,11 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   ),
                 ),
                 TextFormField(
-                  keyboardType: TextInputType.numberWithOptions(signed: false),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(11),
+                  ],
+                  keyboardType: TextInputType.numberWithOptions(),
                   controller: phoneNumberController.value,
                   onTapOutside: (event) => FocusScope.of(context).unfocus(),
                   decoration: InputDecoration(
@@ -101,6 +107,10 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 TextFormField(
                   controller: budgetController.value,
                   onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(11),
+                  ],
                   keyboardType: TextInputType.numberWithOptions(),
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
@@ -164,33 +174,71 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                         phoneNumberController.value.text.isNotEmpty &&
                         budgetController.value.text.isNotEmpty) {
                       if (budgetController.value.text.toDouble() > 0) {
-                        await memberBox.put(
-                          phoneNumberController.value.text,
-                          Member(
-                            name: nameController.value.text,
-                            startDate: start.value,
-                            endDate: end.value,
-                            subscriptionBudget: budgetController.value.text.toDouble(),
-                            profileImageURL: _imageFile?.path,
-                            phoneNumber: phoneNumberController.value.text,
-                          ),
-                        );
-                        Get.snackbar(
-                          'memberAdded'.tr,
-                          ' ',
-                        );
-                        nameController.value.text = '';
-                        phoneNumberController.value.text = '';
-                        budgetController.value.text = '';
-                        start.value = DateTime.now();
-                        end.value = DateTime.now().add(const Duration(days: 30));
-                        _imageFile = null;
-                        setState(() {});
+                        if (memberBox.get(phoneNumberController.value.text) == null) {
+                          await memberBox.put(
+                            phoneNumberController.value.text,
+                            Member(
+                              name: nameController.value.text,
+                              startDate: start.value,
+                              endDate: end.value,
+                              subscriptionBudget: budgetController.value.text.toDouble(),
+                              profileImageURL: _imageFile?.path,
+                              phoneNumber: phoneNumberController.value.text,
+                            ),
+                          );
+                          Get.snackbar(
+                            'memberAdded'.tr,
+                            'daysLeft'.trParams(
+                              {
+                                'days':
+                                    '${end.value.add(const Duration(days: 1)).difference(DateTime.now()).inDays > 2 ? '${end.value.add(const Duration(days: 1)).difference(DateTime.now()).inDays} ' : ''}${end.value.add(const Duration(days: 1)).difference(DateTime.now()).inDays > 2 ? end.value.add(const Duration(days: 1)).difference(DateTime.now()).inDays > 10 ? 'يوم' : 'أيام' : end.value.add(const Duration(days: 1)).difference(DateTime.now()).inDays == 2 ? 'يومين ' : 'يوم'}',
+                              },
+                            ),
+                            backgroundColor: Colors.blue.withValues(alpha: 0.5),
+                            colorText: Colors.white,
+                            borderRadius: 12,
+                            margin: const EdgeInsets.all(12),
+                            icon: const Icon(Icons.check_circle, color: Colors.white),
+                          );
+                          nameController.value.text = '';
+                          phoneNumberController.value.text = '';
+                          budgetController.value.text = '';
+                          start.value = DateTime.now();
+                          end.value = DateTime.now().add(const Duration(days: 30));
+                          _imageFile = null;
+                          setState(() {});
+                        } else {
+                          Get.snackbar(
+                            'error'.tr,
+                            'existingOne'.tr,
+                            backgroundColor: Colors.red.withValues(alpha: 0.5),
+                            colorText: Colors.white,
+                            borderRadius: 12,
+                            margin: const EdgeInsets.all(12),
+                            icon: const Icon(Icons.close, color: Colors.white),
+                          );
+                        }
                       } else {
-                        Get.snackbar('invalidBudgetValue'.tr, ' ');
+                        Get.snackbar(
+                          'invalidBudgetValue'.tr,
+                          'invalidBudgetValueDetailed'.tr,
+                          backgroundColor: Colors.red.withValues(alpha: 0.5),
+                          colorText: Colors.white,
+                          borderRadius: 12,
+                          margin: const EdgeInsets.all(12),
+                          icon: const Icon(Icons.close, color: Colors.white),
+                        );
                       }
                     } else {
-                      Get.snackbar('completeData'.tr, ' ');
+                      Get.snackbar(
+                        'completeData'.tr,
+                        'mustFullData'.tr,
+                        backgroundColor: Colors.red.withValues(alpha: 0.5),
+                        colorText: Colors.white,
+                        borderRadius: 12,
+                        margin: const EdgeInsets.all(12),
+                        icon: const Icon(Icons.close, color: Colors.white),
+                      );
                     }
                   },
                   child: Text('addNewPlayer'.tr),

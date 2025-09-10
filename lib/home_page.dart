@@ -1,9 +1,15 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:fit_gym/main.dart';
 import 'package:fit_gym/member_details.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show FilteringTextInputFormatter, LengthLimitingTextInputFormatter;
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_handler/share_handler.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'about_page.dart';
 import 'add_player_page.dart';
@@ -28,16 +34,87 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  final memberList = memberBox.values.toList().obs;
+
   @override
   Widget build(BuildContext context) {
-    final memberList = memberBox.values.toList().obs;
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: _pageIndex == 0
           ? AppBar(
               title: const Text('FIT GYM'),
               centerTitle: true,
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    FilePickerResult? importFile = await FilePicker.platform.pickFiles();
+
+                    if (importFile != null) {
+                      if (!importFile.files.single.path!.endsWith('.hive')) return;
+                      File file = File(importFile.files.single.path!);
+                      if (await file.exists()) {
+                        await Hive.close();
+                        final dir = await getApplicationDocumentsDirectory();
+                        final hiveFile = File('${dir.path}/members.hive');
+                        await file.copy(hiveFile.path);
+                        Get.snackbar(
+                          'operationSucceeded'.tr,
+                          'fileIsSelected'.tr,
+                          backgroundColor: Colors.blue.withValues(alpha: 0.5),
+                          colorText: Colors.white,
+                          icon: const Icon(
+                            Icons.check_circle,
+                            color: Colors.white,
+                          ),
+                        );
+                        memberBox = await Hive.openBox('members');
+                        memberList.assignAll(memberBox.values.toList());
+                      }
+                    } else {
+                      Get.snackbar(
+                        'operationStoped'.tr,
+                        'fileIsNotSelected'.tr,
+                        backgroundColor: Colors.red.withValues(alpha: 0.5),
+                        colorText: Colors.white,
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    'import'.tr,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final dir = await getApplicationDocumentsDirectory();
+                    final hiveFile = File('${dir.path}/members.hive');
+
+                    if (await hiveFile.exists()) {
+                      SharePlus.instance.share(
+                        ShareParams(
+                          files: [
+                            XFile('${dir.path}/members.hive'),
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    'export'.tr,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
             )
           : null,
       body: IndexedStack(
@@ -79,8 +156,11 @@ class _HomePageState extends State<HomePage> {
                           suffixIcon: const Icon(Icons.search),
                           suffixIconColor: Colors.black.withValues(alpha: 0.6),
                         ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(11),
+                        ],
                         onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                        keyboardType: TextInputType.numberWithOptions(signed: false),
                         onChanged: (value) => memberList.assignAll(
                           memberBox.values.where(
                             (member) => member.phoneNumber.startsWith(value),
