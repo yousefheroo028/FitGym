@@ -28,8 +28,8 @@ class Member extends HiveObject {
 
   int get getRemainingTime => endDate.add(const Duration(days: 1)).difference(DateTime.now()).inDays;
 
-  void renew() {
-    endDate = DateTime.now().add(const Duration(days: 30));
+  void renew({int months = 1}) {
     startDate = DateTime.now();
+    endDate = DateTime(DateTime.now().year, DateTime.now().month + months, DateTime.now().day);
   }
 }

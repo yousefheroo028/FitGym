@@ -1,14 +1,15 @@
 import 'dart:io';
 
+import 'package:dartx/dartx.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:fit_gym/main.dart';
 import 'package:fit_gym/member_details.dart';
+import 'package:fit_gym/share_handler_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter, LengthLimitingTextInputFormatter;
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_handler/share_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'about_page.dart';
@@ -34,10 +35,13 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  final memberList = memberBox.values.toList().obs;
+  final ShareController shareController = Get.find<ShareController>();
+
+  final memberList = memberBox.values.sortedByDescending((element) => element.startDate).toList().obs;
 
   @override
   Widget build(BuildContext context) {
+    memberList.assignAll(memberBox.values.sortedByDescending((element) => element.startDate).toList());
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: _pageIndex == 0
@@ -69,6 +73,7 @@ class _HomePageState extends State<HomePage> {
                         );
                         memberBox = await Hive.openBox('members');
                         memberList.assignAll(memberBox.values.toList());
+                        setState(() {});
                       }
                     } else {
                       Get.snackbar(
@@ -156,6 +161,7 @@ class _HomePageState extends State<HomePage> {
                           suffixIcon: const Icon(Icons.search),
                           suffixIconColor: Colors.black.withValues(alpha: 0.6),
                         ),
+                        keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(11),
@@ -175,20 +181,33 @@ class _HomePageState extends State<HomePage> {
                       ? Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Obx(
-                            () => GridView.count(
-                              crossAxisCount: 2,
-                              physics: BouncingScrollPhysics(),
-                              children: [
-                                for (final member in memberList)
-                                  InkWell(
-                                    onTap: () {
-                                      Get.to(() => const MemberDetails(), arguments: member);
-                                    },
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: MemberCard(member: member),
-                                  ),
-                              ],
-                            ),
+                            () {
+                              final data = shareController.sharedMedia.value;
+
+                              // if (data == null) {
+                              return GridView.count(
+                                crossAxisCount: 2,
+                                physics: BouncingScrollPhysics(),
+                                children: [
+                                  for (final member in memberList)
+                                    InkWell(
+                                      onTap: () {
+                                        Get.to(() => const MemberDetails(), arguments: member);
+                                      },
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: MemberCard(member: member),
+                                    ),
+                                ],
+                              );
+                              // }
+                              // return Column(
+                              //   mainAxisAlignment: MainAxisAlignment.center,
+                              //   children: [
+                              //     if (data.content != null) Text("Shared Text: ${data.content}"),
+                              //     if (data.attachments != null) ...data.attachments!.map((file) => Text("File: ${file?.path}")),
+                              //   ],
+                              // );
+                            },
                           ),
                         )
                       : Text('noMatchedPlayer'.tr),

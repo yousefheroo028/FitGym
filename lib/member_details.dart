@@ -40,10 +40,11 @@ class _MemberDetailsState extends State<MemberDetails> {
     }
   }
 
+  final months = 1.obs;
   @override
   Widget build(BuildContext context) {
     Member member = Get.arguments;
-    final months = 1.obs;
+    int remainingDays = member.getRemainingTime;
 
     return Scaffold(
       appBar: AppBar(
@@ -145,11 +146,11 @@ class _MemberDetailsState extends State<MemberDetails> {
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  member.getRemainingTime > 0
+                  remainingDays > 0
                       ? 'daysLeft'.trParams(
                           {
                             "days":
-                                '${member.getRemainingTime > 2 ? '${member.getRemainingTime} ' : ''}${member.getRemainingTime > 2 ? member.getRemainingTime > 10 ? 'يوم' : 'أيام' : member.getRemainingTime == 2 ? 'يومين ' : 'يوم'}',
+                                '${remainingDays > 2 ? '${remainingDays} ' : ''}${remainingDays > 2 ? remainingDays > 10 ? 'يوم' : 'أيام' : remainingDays == 2 ? 'يومين ' : 'يوم'}',
                           },
                         )
                       : 'الاشتراك خلص',
@@ -185,10 +186,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                       flex: 3,
                       child: ElevatedButton.icon(
                         onPressed: () async {
-                          member.startDate = DateTime.now();
-                          member.endDate = member.startDate.add(
-                            Duration(days: 30 * months.value),
-                          );
+                          member.renew(months: months.value);
                           await member.save();
                           setState(() {});
                           Get.snackbar(
@@ -210,7 +208,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                           );
                         },
                         style: ButtonStyle(
-                          foregroundColor: WidgetStatePropertyAll(member.getRemainingTime < 4 ? Colors.red : Colors.white),
+                          foregroundColor: WidgetStatePropertyAll(remainingDays < 4 ? Colors.red : Colors.white),
                         ),
                         label: Text('renewMember'.tr),
                         icon: const Icon(Icons.autorenew),
@@ -222,6 +220,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
+                        keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           label: Text(
                             'عدد شهور التجديد',
@@ -231,11 +230,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                             ),
                           ),
                         ),
-                        onChanged: (value) => months.value = value.isNotEmpty
-                            ? value.toInt() == 0
-                                ? 1
-                                : value.toInt()
-                            : 1,
+                        onChanged: (value) => months.value = value.isNotEmpty || value.toInt() == 0 ? value.toInt() : 1,
                       ),
                     ),
                   ],

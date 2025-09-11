@@ -1,15 +1,14 @@
-import 'dart:io' show File;
-
 import 'package:fit_gym/languages/langs.dart';
 import 'package:fit_gym/member.dart';
+import 'package:fit_gym/share_handler_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:share_handler/share_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
 
 import 'home_page.dart';
 
@@ -17,7 +16,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initHive();
   bool allowed = await checkIfAllowed();
-  await findSystemLocale();
+  final ShareController shareController = Get.put(ShareController());
+  shareController.initShareHandler();
   runApp(
     allowed
         ? const MyApp()
@@ -28,6 +28,8 @@ Future<void> main() async {
   );
 }
 
+late final SharedMedia? sharedMedia;
+ShareHandlerPlatform shareHandler = ShareHandlerPlatform.instance;
 late final String deviceId;
 late Box<Member> memberBox;
 

@@ -6,7 +6,6 @@ import 'package:fit_gym/member.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter, LengthLimitingTextInputFormatter;
 import 'package:get/get.dart';
-import 'package:date_field/date_field.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddPlayerPage extends StatefulWidget {
@@ -17,17 +16,23 @@ class AddPlayerPage extends StatefulWidget {
 }
 
 class _AddPlayerPageState extends State<AddPlayerPage> {
-  final nameController = TextEditingController().obs;
+  final nameController = TextEditingController();
 
-  final phoneNumberController = TextEditingController().obs;
+  final phoneNumberController = TextEditingController();
 
-  final budgetController = TextEditingController().obs;
+  final budgetController = TextEditingController();
+
+  final startDateController = TextEditingController();
+
+  final endDateController = TextEditingController();
 
   @override
   void dispose() {
-    nameController.value.dispose();
-    phoneNumberController.value.dispose();
-    budgetController.value.dispose();
+    nameController.dispose();
+    phoneNumberController.dispose();
+    budgetController.dispose();
+    startDateController.dispose();
+    endDateController.dispose();
     super.dispose();
   }
 
@@ -54,8 +59,8 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
     }
   }
 
-  final start = DateTime.now().obs;
-  final end = DateTime.now().add(const Duration(days: 30)).obs;
+  DateTime start = DateTime.now();
+  DateTime end = DateTime(DateTime.now().year, DateTime.now().month + 1, DateTime.now().day);
 
   @override
   Widget build(BuildContext context) {
@@ -68,13 +73,13 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
       body: Form(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Obx(
-            () => Column(
+          child: SingleChildScrollView(
+            child: Column(
               spacing: 16.0,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 TextFormField(
-                  controller: nameController.value,
+                  controller: nameController,
                   onTapOutside: (event) => FocusScope.of(context).unfocus(),
                   decoration: InputDecoration(
                     hintText: 'enterName'.tr,
@@ -92,7 +97,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                     LengthLimitingTextInputFormatter(11),
                   ],
                   keyboardType: TextInputType.numberWithOptions(),
-                  controller: phoneNumberController.value,
+                  controller: phoneNumberController,
                   onTapOutside: (event) => FocusScope.of(context).unfocus(),
                   decoration: InputDecoration(
                     hintText: 'enterPhone'.tr,
@@ -105,7 +110,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   ),
                 ),
                 TextFormField(
-                  controller: budgetController.value,
+                  controller: budgetController,
                   onTapOutside: (event) => FocusScope.of(context).unfocus(),
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -125,29 +130,51 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                     ),
                   ),
                 ),
-                DateTimeFormField(
+                TextFormField(
+                  onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                  readOnly: true,
+                  onTap: () async {
+                    await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(DateTime.now().year - 1, DateTime.now().month, DateTime.now().day),
+                      lastDate: DateTime(DateTime.now().year + 1, DateTime.now().month, DateTime.now().day),
+                    ).then(
+                      (value) {
+                        startDateController.text = '${value?.day} - ${value?.month} - ${value?.year}';
+                        start = value ?? DateTime.now();
+                      },
+                    );
+                  },
                   decoration: InputDecoration(
                     labelText: 'enterStartDate'.tr,
-                    enabledBorder: InputBorder.none,
-                    labelStyle: TextStyle(color: Colors.grey[500]),
+                    suffixIcon: const Icon(Icons.date_range),
+                    suffixIconColor: Colors.black.withValues(alpha: 0.5),
                   ),
-                  initialPickerDateTime: DateTime.now(),
-                  onChanged: (value) {
-                    start.value = value ?? DateTime.now();
-                  },
-                  mode: DateTimeFieldPickerMode.date,
+                  controller: startDateController,
                 ),
-                DateTimeFormField(
+                TextFormField(
+                  onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                  readOnly: true,
+                  onTap: () async {
+                    await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(DateTime.now().year - 1, DateTime.now().month, DateTime.now().day),
+                      lastDate: DateTime(DateTime.now().year + 1, DateTime.now().month, DateTime.now().day),
+                    ).then(
+                      (value) {
+                        endDateController.text = '${value?.day} - ${value?.month} - ${value?.year}';
+                        end = value ?? DateTime(DateTime.now().year, DateTime.now().month + 1, DateTime.now().day);
+                      },
+                    );
+                  },
                   decoration: InputDecoration(
                     labelText: 'enterEndDate'.tr,
-                    enabledBorder: InputBorder.none,
-                    labelStyle: TextStyle(color: Colors.grey[500]),
+                    suffixIcon: const Icon(Icons.date_range),
+                    suffixIconColor: Colors.black.withValues(alpha: 0.5),
                   ),
-                  initialPickerDateTime: DateTime.now().add(const Duration(days: 30)),
-                  onChanged: (value) {
-                    end.value = value ?? DateTime.now().add(const Duration(days: 30));
-                  },
-                  mode: DateTimeFieldPickerMode.date,
+                  controller: endDateController,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -170,20 +197,20 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (nameController.value.text.isNotEmpty &&
-                        phoneNumberController.value.text.isNotEmpty &&
-                        budgetController.value.text.isNotEmpty) {
-                      if (budgetController.value.text.toDouble() > 0) {
-                        if (memberBox.get(phoneNumberController.value.text) == null) {
+                    if (nameController.text.isNotEmpty &&
+                        phoneNumberController.text.isNotEmpty &&
+                        budgetController.text.isNotEmpty) {
+                      if (budgetController.text.toDouble() > 0) {
+                        if (memberBox.get(phoneNumberController.text) == null) {
                           await memberBox.put(
-                            phoneNumberController.value.text,
+                            phoneNumberController.text,
                             Member(
-                              name: nameController.value.text,
-                              startDate: start.value,
-                              endDate: end.value,
-                              subscriptionBudget: budgetController.value.text.toDouble(),
+                              name: nameController.text,
+                              startDate: start,
+                              endDate: end,
+                              subscriptionBudget: budgetController.text.toDouble(),
                               profileImageURL: _imageFile?.path,
-                              phoneNumber: phoneNumberController.value.text,
+                              phoneNumber: phoneNumberController.text,
                             ),
                           );
                           Get.snackbar(
@@ -191,7 +218,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                             'daysLeft'.trParams(
                               {
                                 'days':
-                                    '${end.value.add(const Duration(days: 1)).difference(DateTime.now()).inDays > 2 ? '${end.value.add(const Duration(days: 1)).difference(DateTime.now()).inDays} ' : ''}${end.value.add(const Duration(days: 1)).difference(DateTime.now()).inDays > 2 ? end.value.add(const Duration(days: 1)).difference(DateTime.now()).inDays > 10 ? 'يوم' : 'أيام' : end.value.add(const Duration(days: 1)).difference(DateTime.now()).inDays == 2 ? 'يومين ' : 'يوم'}',
+                                    '${end.add(const Duration(days: 1)).difference(DateTime.now()).inDays > 2 ? '${end.add(const Duration(days: 1)).difference(DateTime.now()).inDays} ' : ''}${end.add(const Duration(days: 1)).difference(DateTime.now()).inDays > 2 ? end.add(const Duration(days: 1)).difference(DateTime.now()).inDays > 10 ? 'يوم' : 'أيام' : end.add(const Duration(days: 1)).difference(DateTime.now()).inDays == 2 ? 'يومين ' : 'يوم'}',
                               },
                             ),
                             backgroundColor: Colors.blue.withValues(alpha: 0.5),
@@ -200,11 +227,11 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                             margin: const EdgeInsets.all(12),
                             icon: const Icon(Icons.check_circle, color: Colors.white),
                           );
-                          nameController.value.text = '';
-                          phoneNumberController.value.text = '';
-                          budgetController.value.text = '';
-                          start.value = DateTime.now();
-                          end.value = DateTime.now().add(const Duration(days: 30));
+                          nameController.text = '';
+                          phoneNumberController.text = '';
+                          budgetController.text = '';
+                          start = DateTime.now();
+                          end = DateTime.now().add(const Duration(days: 30));
                           _imageFile = null;
                           setState(() {});
                         } else {
@@ -243,10 +270,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   },
                   child: Text('addNewPlayer'.tr),
                 ),
-                if (_imageFile != null)
-                  Expanded(
-                    child: Image.file(_imageFile!),
-                  ),
+                if (_imageFile != null) Image.file(_imageFile!),
               ],
             ),
           ),

@@ -16,56 +16,67 @@ class AboutPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            spacing: 8.0,
-            children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.transparent,
-                child: Image.asset('assets/icon/logo.png'),
-              ),
-              const Text(
-                "FIT GYM",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'appDescribtion'.tr,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              const Divider(),
-              Text(
-                'developerInfo'.tr,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    onPressed: () async => await launchUrl(
-                      Uri.parse('https://www.linkedin.com/in/youssefhassanfahmy2004/'),
-                      mode: LaunchMode.externalApplication,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: 8.0,
+              children: [
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.transparent,
+                  child: Image.asset('assets/icon/logo.png'),
+                ),
+                const Text(
+                  "FIT GYM",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'appDescribtion'.tr,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                const Divider(),
+                Text(
+                  'developerInfo'.tr,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      onPressed: () async => await launchUrl(
+                        Uri.parse('https://www.linkedin.com/in/youssefhassanfahmy2004/'),
+                        mode: LaunchMode.externalApplication,
+                      ),
+                      icon: const FaIcon(FontAwesomeIcons.linkedinIn),
                     ),
-                    icon: const FaIcon(FontAwesomeIcons.linkedinIn),
-                  ),
-                  IconButton(
-                    onPressed: () async => await launchUrl(
-                      Uri.parse('https://www.facebook.com/yousef.hassan.9634340/'),
-                      mode: LaunchMode.externalApplication,
+                    IconButton(
+                      onPressed: () async => await launchUrl(
+                        Uri.parse('https://www.facebook.com/yousef.hassan.9634340/'),
+                        mode: LaunchMode.externalApplication,
+                      ),
+                      icon: const FaIcon(FontAwesomeIcons.facebookF),
                     ),
-                    icon: const FaIcon(FontAwesomeIcons.facebookF),
-                  ),
-                  IconButton(
-                    onPressed: () async => await launchUrl(
-                      Uri.parse('https://github.com/yousefheroo028/'),
-                      mode: LaunchMode.externalApplication,
+                    IconButton(
+                      onPressed: () async => await launchUrl(
+                        Uri.parse('https://github.com/yousefheroo028/'),
+                        mode: LaunchMode.externalApplication,
+                      ),
+                      icon: const FaIcon(FontAwesomeIcons.github),
                     ),
-                    icon: const FaIcon(FontAwesomeIcons.github),
+                  ],
+                ),
+                const Divider(),
+                SizedBox(
+                  width: 190,
+                  child: ListTile(
+                    trailing: const Icon(Icons.phone),
+                    title: const Text('01140169448'),
+                    onTap: () => launchUrl(mode: LaunchMode.externalApplication, Uri.parse('tel:01140169448')),
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
