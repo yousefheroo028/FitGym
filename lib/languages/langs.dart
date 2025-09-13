@@ -44,11 +44,17 @@ class Languages extends Translations {
           'error': 'في لاعب متسجل هنا بنفس الرقم',
           'existingOne': 'اتأكد من رقم الموبايل اللي دخلته',
           'import': 'استقبل',
+          'endSmaller': 'الاشتراك خلصان أصلًا',
+          'startBiggerThanEnd': 'لازم تاريخ انتهاء الاشتراك يكون بعد تاريخ بداية الاشتراك',
           'operationStoped': 'العملية توقفت',
           'fileIsNotSelected': 'لم يتم اختيار أي فايل',
           'operationSucceeded': 'تم اختيار الفايل بنجاح',
+          'expired': 'منتهي',
+          'soon': 'قرب يخلص',
+          'fileDoesntFound': 'مالقيناش الفايل',
           'fileIsSelected': 'تم تحديث الداتا',
           'export': 'ابعت',
+          'errorFile': 'في مشكلة',
           "nameOfMember": "اكتب اسم اللاعب"
         },
       };

@@ -26,7 +26,7 @@ class Member extends HiveObject {
     required this.phoneNumber,
   });
 
-  int get getRemainingTime => endDate.add(const Duration(days: 1)).difference(DateTime.now()).inDays;
+  int getRemainingTime() => endDate.add(const Duration(days: 1)).difference(DateTime.now()).inDays;
 
   void renew({int months = 1}) {
     startDate = DateTime.now();

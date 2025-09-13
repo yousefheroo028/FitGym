@@ -4,9 +4,8 @@ import 'package:dartx/dartx.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:fit_gym/main.dart';
 import 'package:fit_gym/member_details.dart';
-import 'package:fit_gym/share_handler_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show FilteringTextInputFormatter, LengthLimitingTextInputFormatter;
+import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -35,13 +34,14 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  final ShareController shareController = Get.find<ShareController>();
-
-  final memberList = memberBox.values.sortedByDescending((element) => element.startDate).toList().obs;
+  final isNameEmpty = false.obs;
+  final isPhoneNumberEmpty = false.obs;
 
   @override
   Widget build(BuildContext context) {
-    memberList.assignAll(memberBox.values.sortedByDescending((element) => element.startDate).toList());
+    final filteredY = false.obs;
+    final filteredR = false.obs;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: _pageIndex == 0
@@ -72,8 +72,8 @@ class _HomePageState extends State<HomePage> {
                           ),
                         );
                         memberBox = await Hive.openBox('members');
-                        memberList.assignAll(memberBox.values.toList());
-                        setState(() {});
+                        memberList.assignAll(memberBox.values);
+                        memberList.sortedByDescending((member) => member.startDate);
                       }
                     } else {
                       Get.snackbar(
@@ -145,13 +145,13 @@ class _HomePageState extends State<HomePage> {
                           suffixIconColor: Colors.black.withValues(alpha: 0.6),
                         ),
                         onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                        onChanged: (value) => memberList.assignAll(
-                          memberBox.values.where(
-                            (member) => member.name.toLowerCase().contains(
-                                  value.toLowerCase(),
-                                ),
-                          ),
-                        ),
+                        onChanged: (value) {
+                          memberList.assignAll(
+                            memberBox.values.where((member) => member.name.toLowerCase().contains(value.toLowerCase())),
+                          );
+                          isNameEmpty.value = memberList.isEmpty;
+                          memberList.sortedByDescending((member) => member.startDate);
+                        },
                       ),
                       TextField(
                         controller: memberSearchByPhoneNumberController,
@@ -164,53 +164,101 @@ class _HomePageState extends State<HomePage> {
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(11),
                         ],
                         onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                        onChanged: (value) => memberList.assignAll(
-                          memberBox.values.where(
-                            (member) => member.phoneNumber.startsWith(value),
-                          ),
+                        onChanged: (value) {
+                          memberList.assignAll(
+                            memberBox.values.where((member) => member.phoneNumber.startsWith(value)),
+                          );
+                          isPhoneNumberEmpty.value = memberList.isEmpty;
+                          memberList.sortedByDescending((member) => member.startDate);
+                        },
+                      ),
+                      Obx(
+                        () => Row(
+                          spacing: 16.0,
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.amber.shade600.withValues(alpha: filteredY.value ? 0.5 : 1),
+                                  foregroundColor: Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                                  elevation: 0,
+                                ),
+                                onPressed: () {
+                                  memberList.assignAll(
+                                    filteredY.value
+                                        ? memberBox.values
+                                        : memberBox.values.where(
+                                            (member) => member.getRemainingTime() >= 0 && member.getRemainingTime() <= 3,
+                                          ),
+                                  );
+                                  filteredY.value = !filteredY.value;
+                                  filteredR.value = false;
+                                },
+                                child: Text(
+                                  'soon'.tr,
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red.shade700.withValues(alpha: filteredR.value ? 0.5 : 1),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                                  elevation: 0,
+                                ),
+                                onPressed: () {
+                                  memberList.assignAll(
+                                    filteredR.value
+                                        ? memberBox.values
+                                        : memberBox.values.where(
+                                            (member) => member.getRemainingTime() < 0,
+                                          ),
+                                  );
+                                  filteredR.value = !filteredR.value;
+                                  filteredY.value = false;
+                                },
+                                child: Text(
+                                  'expired'.tr,
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
                 Expanded(
-                  child: memberList.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Obx(
-                            () {
-                              final data = shareController.sharedMedia.value;
-
-                              // if (data == null) {
-                              return GridView.count(
-                                crossAxisCount: 2,
-                                physics: BouncingScrollPhysics(),
-                                children: [
-                                  for (final member in memberList)
-                                    InkWell(
-                                      onTap: () {
-                                        Get.to(() => const MemberDetails(), arguments: member);
-                                      },
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: MemberCard(member: member),
-                                    ),
-                                ],
-                              );
-                              // }
-                              // return Column(
-                              //   mainAxisAlignment: MainAxisAlignment.center,
-                              //   children: [
-                              //     if (data.content != null) Text("Shared Text: ${data.content}"),
-                              //     if (data.attachments != null) ...data.attachments!.map((file) => Text("File: ${file?.path}")),
-                              //   ],
-                              // );
-                            },
-                          ),
-                        )
-                      : Text('noMatchedPlayer'.tr),
+                  child: Obx(
+                    () => !isNameEmpty.value && !isPhoneNumberEmpty.value
+                        ? GridView.count(
+                            crossAxisCount: 2,
+                            physics: BouncingScrollPhysics(),
+                            children: [
+                              for (final member in memberList)
+                                InkWell(
+                                  onTap: () {
+                                    Get.to(() => const MemberDetails(), arguments: member);
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Hero(tag: member.phoneNumber, child: MemberCard(member: member)),
+                                ),
+                            ],
+                          )
+                        : Text('noMatchedPlayer'.tr),
+                  ),
                 ),
               ],
             ),
@@ -243,9 +291,9 @@ class MemberCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: member.getRemainingTime > 3
+      color: member.getRemainingTime() > 3
           ? Colors.grey.withValues(alpha: 0.1)
-          : member.getRemainingTime > 0
+          : member.getRemainingTime() >= 0
               ? Colors.orange.withValues(alpha: 0.2)
               : Colors.red.withValues(alpha: 0.2),
       child: Padding(

@@ -1,13 +1,14 @@
+import 'dart:async';
+
+import 'package:dartx/dartx.dart';
 import 'package:fit_gym/languages/langs.dart';
 import 'package:fit_gym/member.dart';
-import 'package:fit_gym/share_handler_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Intent;
 import 'package:get/get.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:hive_flutter/adapters.dart';
-import 'package:share_handler/share_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'home_page.dart';
@@ -16,8 +17,6 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initHive();
   bool allowed = await checkIfAllowed();
-  final ShareController shareController = Get.put(ShareController());
-  shareController.initShareHandler();
   runApp(
     allowed
         ? const MyApp()
@@ -28,16 +27,48 @@ Future<void> main() async {
   );
 }
 
-late final SharedMedia? sharedMedia;
-ShareHandlerPlatform shareHandler = ShareHandlerPlatform.instance;
 late final String deviceId;
 late Box<Member> memberBox;
 
+const boxName = 'members';
 Future<void> initHive() async {
   await Hive.initFlutter();
   Hive.registerAdapter(MemberAdapter());
-  memberBox = await Hive.openBox<Member>('members');
+  memberBox = await Hive.openBox<Member>(boxName);
 }
+
+final memberList = memberBox.values.sortedByDescending((element) => element.startDate).toList().obs;
+
+// void loadMembers() async {
+//   final media = shareController.hiveFile;
+//   if (media == null) {
+//     memberList.assignAll(memberBox.values);
+//   } else {
+//     File file = File(media);
+//     if (await file.exists()) {
+//       print('asdafwe');
+//       await Hive.close();
+//       final dir = await getApplicationDocumentsDirectory();
+//       final hiveFile = File('${dir.path}/members.hive');
+//       await file.copy(hiveFile.path);
+//       Get.snackbar(
+//         'operationSucceeded'.tr,
+//         'fileIsSelected'.tr,
+//         backgroundColor: Colors.blue.withValues(alpha: 0.5),
+//         colorText: Colors.white,
+//         icon: const Icon(
+//           Icons.check_circle,
+//           color: Colors.white,
+//         ),
+//       );
+//       memberBox = await Hive.openBox('members');
+//       memberList.assignAll(memberBox.values);
+//       return;
+//     }
+//   }
+// }
+//
+// final shareController = Get.put(ShareController());
 
 Future<bool> checkIfAllowed() async {
   final deviceInfo = DeviceInfoPlugin();

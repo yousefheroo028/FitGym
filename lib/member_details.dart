@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'main.dart';
+
 class MemberDetails extends StatefulWidget {
   const MemberDetails({super.key});
 
@@ -44,7 +46,7 @@ class _MemberDetailsState extends State<MemberDetails> {
   @override
   Widget build(BuildContext context) {
     Member member = Get.arguments;
-    int remainingDays = member.getRemainingTime;
+    final remainingDays = member.getRemainingTime().obs;
 
     return Scaffold(
       appBar: AppBar(
@@ -59,17 +61,20 @@ class _MemberDetailsState extends State<MemberDetails> {
               spacing: 8.0,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  height: 220,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: member.profileImageURL != null
-                          ? FileImage(File(member.profileImageURL!))
-                          : const AssetImage('assets/icon/placeholder.jpeg'),
-                      fit: BoxFit.contain,
+                Hero(
+                  tag: member.phoneNumber,
+                  child: Container(
+                    height: 220,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: member.profileImageURL != null
+                            ? FileImage(File(member.profileImageURL!))
+                            : const AssetImage('assets/icon/placeholder.jpeg'),
+                        fit: BoxFit.contain,
+                      ),
+                      border: Border.all(color: Colors.blue, width: 1),
                     ),
-                    border: Border.all(color: Colors.blue, width: 1),
                   ),
                 ),
                 const Divider(),
@@ -145,17 +150,19 @@ class _MemberDetailsState extends State<MemberDetails> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  remainingDays > 0
-                      ? 'daysLeft'.trParams(
-                          {
-                            "days":
-                                '${remainingDays > 2 ? '${remainingDays} ' : ''}${remainingDays > 2 ? remainingDays > 10 ? 'يوم' : 'أيام' : remainingDays == 2 ? 'يومين ' : 'يوم'}',
-                          },
-                        )
-                      : 'الاشتراك خلص',
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Obx(
+                  () => Text(
+                    remainingDays.value >= 0
+                        ? 'daysLeft'.trParams(
+                            {
+                              "days":
+                                  '${remainingDays.value > 2 ? '${remainingDays.value} ' : ''}${remainingDays.value > 2 ? remainingDays.value > 10 ? 'يوم' : 'أيام' : remainingDays.value == 2 ? 'يومين ' : 'يوم'}',
+                            },
+                          )
+                        : 'الاشتراك خلص',
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Text(
                   'subscriptionBudget'.trParams(
@@ -170,8 +177,10 @@ class _MemberDetailsState extends State<MemberDetails> {
                 SizedBox(
                   width: context.width,
                   child: ElevatedButton.icon(
-                    onPressed: () async {
-                      await member.delete();
+                    onPressed: () {
+                      member.delete();
+                      memberList.assignAll(memberBox.values);
+                      memberList.sortedByDescending((member) => member.startDate);
                       Get.offAll(() => const HomePage());
                     },
                     label: Text('deleteMember'.tr),
@@ -182,36 +191,38 @@ class _MemberDetailsState extends State<MemberDetails> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   spacing: 16.0,
                   children: [
-                    Expanded(
-                      flex: 3,
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          member.renew(months: months.value);
-                          await member.save();
-                          setState(() {});
-                          Get.snackbar(
-                            'renewSucceded'.tr,
-                            'renewMonths'.trParams(
-                              {
-                                "months": months.value == 1
-                                    ? 'شهر'
-                                    : months.value == 2
-                                        ? 'شهرين'
-                                        : '${months.value} شهور',
-                              },
-                            ),
-                            backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                            colorText: Colors.white,
-                            borderRadius: 12,
-                            margin: const EdgeInsets.all(12),
-                            icon: const Icon(Icons.check_circle, color: Colors.white),
-                          );
-                        },
-                        style: ButtonStyle(
-                          foregroundColor: WidgetStatePropertyAll(remainingDays < 4 ? Colors.red : Colors.white),
+                    Obx(
+                      () => Expanded(
+                        flex: 3,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            member.renew(months: months.value);
+                            await member.save();
+                            memberList.assignAll(memberBox.values);
+                            Get.snackbar(
+                              'renewSucceded'.tr,
+                              'renewMonths'.trParams(
+                                {
+                                  "months": months.value == 1 || months.value > 10
+                                      ? '${months.value > 2 ? '${months.value} ' : ''}شهر'
+                                      : months.value == 2
+                                          ? 'شهرين'
+                                          : '${months.value} شهور',
+                                },
+                              ),
+                              backgroundColor: Colors.blue.withValues(alpha: 0.5),
+                              colorText: Colors.white,
+                              borderRadius: 12,
+                              margin: const EdgeInsets.all(12),
+                              icon: const Icon(Icons.check_circle, color: Colors.white),
+                            );
+                          },
+                          style: ButtonStyle(
+                            foregroundColor: WidgetStatePropertyAll(remainingDays.value < 4 ? Colors.red : Colors.white),
+                          ),
+                          label: Text('renewMember'.tr),
+                          icon: const Icon(Icons.autorenew),
                         ),
-                        label: Text('renewMember'.tr),
-                        icon: const Icon(Icons.autorenew),
                       ),
                     ),
                     Expanded(
@@ -221,6 +232,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                           FilteringTextInputFormatter.digitsOnly,
                         ],
                         keyboardType: TextInputType.number,
+                        onTapOutside: (event) => FocusScope.of(context).unfocus(),
                         decoration: InputDecoration(
                           label: Text(
                             'عدد شهور التجديد',
@@ -230,7 +242,17 @@ class _MemberDetailsState extends State<MemberDetails> {
                             ),
                           ),
                         ),
-                        onChanged: (value) => months.value = value.isNotEmpty || value.toInt() == 0 ? value.toInt() : 1,
+                        onChanged: (value) {
+                          if (value.isNotEmpty) {
+                            if (value.toInt() != 0) {
+                              months.value = int.parse(value);
+                            } else {
+                              months.value = 1;
+                            }
+                          } else {
+                            months.value = 1;
+                          }
+                        },
                       ),
                     ),
                   ],
@@ -246,6 +268,8 @@ class _MemberDetailsState extends State<MemberDetails> {
                             await _pickImageFromGallery();
                             member.profileImageURL = _imageFile?.path;
                             await member.save();
+                            memberList.assignAll(memberBox.values);
+                            memberList.sortedByDescending((member) => member.startDate);
                           },
                           icon: const Icon(Icons.photo_size_select_actual_outlined),
                           label: Text('pickPhoto'.tr),
@@ -257,6 +281,8 @@ class _MemberDetailsState extends State<MemberDetails> {
                             await _pickImageFromCamera();
                             member.profileImageURL = _imageFile?.path;
                             await member.save();
+                            memberList.assignAll(memberBox.values);
+                            memberList.sortedByDescending((member) => member.startDate);
                           },
                           icon: const Icon(Icons.camera_alt_outlined),
                           label: Text('takePhoto'.tr),
