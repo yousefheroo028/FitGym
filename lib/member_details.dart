@@ -94,7 +94,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                     },
                   ),
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 InkWell(
                   onLongPress: () => Clipboard.setData(ClipboardData(text: member.phoneNumber)).then(

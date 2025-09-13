@@ -253,7 +253,7 @@ class _HomePageState extends State<HomePage> {
                                     Get.to(() => const MemberDetails(), arguments: member);
                                   },
                                   borderRadius: BorderRadius.circular(12),
-                                  child: Hero(tag: member.phoneNumber, child: MemberCard(member: member)),
+                                  child: MemberCard(member: member),
                                 ),
                             ],
                           )
@@ -305,18 +305,21 @@ class MemberCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: member.profileImageURL != null
-                        ? FileImage(File(member.profileImageURL!))
-                        : AssetImage('assets/icon/placeholder.jpeg'),
-                    fit: BoxFit.cover,
+              Hero(
+                tag: member.phoneNumber,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: member.profileImageURL != null
+                          ? FileImage(File(member.profileImageURL!))
+                          : AssetImage('assets/icon/placeholder.jpeg'),
+                      fit: BoxFit.cover,
+                    ),
+                    border: Border.all(color: Colors.blue, width: 3),
                   ),
-                  border: Border.all(color: Colors.blue, width: 3),
                 ),
               ),
               Text(
