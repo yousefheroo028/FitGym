@@ -7,7 +7,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart' hide Intent;
 import 'package:get/get.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -16,15 +15,7 @@ import 'home_page.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initHive();
-  bool allowed = await checkIfAllowed();
-  runApp(
-    allowed
-        ? const MyApp()
-        : const GetMaterialApp(
-            home: NotAllowedPage(),
-            debugShowCheckedModeBanner: false,
-          ),
-  );
+  runApp(const MyApp());
 }
 
 late final String deviceId;
@@ -39,53 +30,6 @@ Future<void> initHive() async {
 
 final memberList = memberBox.values.sortedByDescending((element) => element.startDate).toList().obs;
 
-// void loadMembers() async {
-//   final media = shareController.hiveFile;
-//   if (media == null) {
-//     memberList.assignAll(memberBox.values);
-//   } else {
-//     File file = File(media);
-//     if (await file.exists()) {
-//       print('asdafwe');
-//       await Hive.close();
-//       final dir = await getApplicationDocumentsDirectory();
-//       final hiveFile = File('${dir.path}/members.hive');
-//       await file.copy(hiveFile.path);
-//       Get.snackbar(
-//         'operationSucceeded'.tr,
-//         'fileIsSelected'.tr,
-//         backgroundColor: Colors.blue.withValues(alpha: 0.5),
-//         colorText: Colors.white,
-//         icon: const Icon(
-//           Icons.check_circle,
-//           color: Colors.white,
-//         ),
-//       );
-//       memberBox = await Hive.openBox('members');
-//       memberList.assignAll(memberBox.values);
-//       return;
-//     }
-//   }
-// }
-//
-// final shareController = Get.put(ShareController());
-
-Future<bool> checkIfAllowed() async {
-  final deviceInfo = DeviceInfoPlugin();
-  final androidInfo = await deviceInfo.androidInfo;
-  deviceId = androidInfo.id;
-
-  const allowedDevices = [
-    'RKQ1.201217.002',
-    'TP1A.220624.014',
-    'AE3A.240806.036',
-    'TP1A.220624.014',
-    'HONORBRC-N21',
-  ];
-
-  return allowedDevices.contains(deviceId);
-}
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -96,26 +40,26 @@ class MyApp extends StatelessWidget {
       home: HomePage(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
+          seedColor: Colors.teal.shade400,
           brightness: Brightness.light,
         ),
-        textTheme: GoogleFonts.cairoTextTheme(),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
+        textTheme: GoogleFonts.cairoTextTheme(ThemeData.light().textTheme),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
           elevation: 0,
-          titleTextStyle: TextStyle(
+          titleTextStyle: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: Colors.black,
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
+            backgroundColor: Colors.teal.shade400,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(12)),
+              borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -125,59 +69,120 @@ class MyApp extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          color: Colors.blueAccent.withValues(alpha: 0.1),
           elevation: 0,
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: Colors.white,
           elevation: 10,
-          selectedItemColor: Colors.blue,
+          selectedItemColor: Colors.teal.shade400,
           unselectedItemColor: Colors.grey,
-          selectedLabelStyle: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-          unselectedLabelStyle: TextStyle(
-            fontSize: 12,
-          ),
+          selectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
           showUnselectedLabels: true,
-          // يظهر النص حتى لو مش مختار
-          type: BottomNavigationBarType.fixed, // يثبت الأيقونات
+          type: BottomNavigationBarType.fixed,
         ),
         dividerTheme: DividerThemeData(
-          color: Colors.blueAccent.withValues(alpha: 0.3),
-          // لون الخط
+          color: Colors.teal.shade200,
           thickness: 1,
-          // السمك
           space: 20,
-          // مسافة قبل وبعد
           indent: 16,
-          // بداية المسافة من الشمال
-          endIndent: 16, // نهاية المسافة من اليمين
+          endIndent: 16,
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: Colors.grey[100],
+          fillColor: Colors.grey.shade100,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none, // بدون خط
+            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.blue, width: 2),
+            borderSide: BorderSide(color: Colors.teal.shade400, width: 2),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3), width: 1),
+            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
           ),
-          labelStyle: const TextStyle(color: Colors.blue),
-          hintStyle: TextStyle(color: Colors.grey[500]),
+          labelStyle: TextStyle(color: Colors.teal.shade400),
+          hintStyle: TextStyle(color: Colors.grey[600]),
+        ),
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.teal.shade300,
+          brightness: Brightness.dark,
+        ),
+        textTheme: GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.grey.shade900,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          titleTextStyle: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.teal.shade300,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        cardTheme: CardThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0, // layer subtle
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: Colors.black,
+          elevation: 10,
+          selectedItemColor: Colors.teal.shade300,
+          unselectedItemColor: Colors.grey,
+          selectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
+          showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+        ),
+        dividerTheme: DividerThemeData(
+          color: Colors.teal.shade200,
+          thickness: 1,
+          space: 20,
+          indent: 16,
+          endIndent: 16,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.grey.shade900,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.teal.shade300, width: 2),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade700, width: 1),
+          ),
+          labelStyle: TextStyle(color: Colors.teal.shade200),
+          hintStyle: TextStyle(color: Colors.grey[400]),
         ),
       ),
       translations: Languages(),
       locale: const Locale('ar', 'AE'),
+      themeMode: ThemeMode.system,
       fallbackLocale: const Locale('ar', 'AE'),
     );
   }

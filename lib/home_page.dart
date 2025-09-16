@@ -37,6 +37,7 @@ class _HomePageState extends State<HomePage> {
   final isNameEmpty = false.obs;
   final isPhoneNumberEmpty = false.obs;
 
+  final isDark = Get.isDarkMode.obs;
   @override
   Widget build(BuildContext context) {
     final filteredY = false.obs;
@@ -91,7 +92,6 @@ class _HomePageState extends State<HomePage> {
                   child: Text(
                     'import'.tr,
                     style: const TextStyle(
-                      color: Colors.white,
                       fontSize: 16,
                     ),
                   ),
@@ -114,12 +114,20 @@ class _HomePageState extends State<HomePage> {
                   child: Text(
                     'export'.tr,
                     style: const TextStyle(
-                      color: Colors.white,
                       fontSize: 16,
                     ),
                   ),
                 ),
               ],
+              leading: Obx(
+                () => IconButton(
+                  onPressed: () {
+                    Get.changeThemeMode(isDark.value ? ThemeMode.light : ThemeMode.dark);
+                    isDark.value = !isDark.value;
+                  },
+                  icon: Icon(isDark.value ? Icons.light_mode : Icons.dark_mode),
+                ),
+              ),
             )
           : null,
       body: IndexedStack(
