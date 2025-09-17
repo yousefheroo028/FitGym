@@ -43,11 +43,12 @@ class _MemberDetailsState extends State<MemberDetails> {
   }
 
   final months = 1.obs;
-
+  Member member = Get.arguments;
   @override
   Widget build(BuildContext context) {
-    Member member = Get.arguments;
     final remainingDays = member.getRemainingTime().obs;
+    final startDate = member.startDate.obs;
+    final endDate = member.endDate.obs;
 
     return Scaffold(
       appBar: AppBar(
@@ -99,10 +100,14 @@ class _MemberDetailsState extends State<MemberDetails> {
                 InkWell(
                   onLongPress: () => Clipboard.setData(ClipboardData(text: member.phoneNumber)).then(
                     (value) => Get.snackbar(
-                      'copied'.tr,
-                      'numberCopied'.trParams(
+                      'copied'.trParams(
                         {
                           "name": member.name,
+                        },
+                      ),
+                      'numberCopied'.trParams(
+                        {
+                          "name": member.phoneNumber,
                         },
                       ),
                       backgroundColor: Colors.blue.withValues(alpha: 0.5),
@@ -131,24 +136,28 @@ class _MemberDetailsState extends State<MemberDetails> {
                     ),
                   ],
                 ),
-                Text(
-                  'startDateOfPlayer'.trParams(
-                    {
-                      "date": '${member.startDate.year} / ${member.startDate.month} / ${member.startDate.day}',
-                    },
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'endDateOfPlayer'.trParams(
-                    {
-                      "date": '${member.endDate.year} / ${member.endDate.month} / ${member.endDate.day}',
-                    },
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                Obx(() {
+                  return Text(
+                    'startDateOfPlayer'.trParams(
+                      {
+                        "date": '${startDate.value.year} / ${startDate.value.month} / ${startDate.value.day}',
+                      },
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  );
+                }),
+                Obx(() {
+                  return Text(
+                    'endDateOfPlayer'.trParams(
+                      {
+                        "date": '${endDate.value.year} / ${endDate.value.month} / ${endDate.value.day}',
+                      },
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  );
+                }),
                 Obx(
                   () => Text(
                     remainingDays.value >= 0
@@ -194,6 +203,8 @@ class _MemberDetailsState extends State<MemberDetails> {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             remainingDays.value = member.renew(months: months.value);
+                            startDate.value = member.startDate;
+                            endDate.value = member.endDate;
                             await member.save();
                             updateDatabase();
                             Get.snackbar(
