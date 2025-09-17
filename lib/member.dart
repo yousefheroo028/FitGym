@@ -1,3 +1,4 @@
+import 'package:dartx/dartx.dart';
 import 'package:hive/hive.dart';
 
 part 'member.g.dart';
@@ -5,17 +6,17 @@ part 'member.g.dart';
 @HiveType(typeId: 1)
 class Member extends HiveObject {
   @HiveField(0)
-  final String name;
+  String name;
   @HiveField(1)
   DateTime startDate;
   @HiveField(2)
   DateTime endDate;
   @HiveField(3)
-  final double subscriptionBudget;
+  double subscriptionBudget;
   @HiveField(4)
   String? profileImageURL;
   @HiveField(5)
-  final String phoneNumber;
+  String phoneNumber;
 
   Member({
     required this.name,
@@ -26,10 +27,11 @@ class Member extends HiveObject {
     required this.phoneNumber,
   });
 
-  int getRemainingTime() => endDate.add(const Duration(days: 1)).difference(DateTime.now()).inDays;
+  int getRemainingTime() => endDate.date.difference(DateTime.now().date).inDays;
 
-  void renew({int months = 1}) {
+  int renew({int months = 1}) {
     startDate = DateTime.now();
-    endDate = DateTime(DateTime.now().year, DateTime.now().month + months, DateTime.now().day);
+    endDate = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day + months * 30 - 1);
+    return getRemainingTime();
   }
 }

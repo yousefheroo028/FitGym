@@ -60,7 +60,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
   }
 
   DateTime start = DateTime.now();
-  late DateTime end = DateTime(start.year, start.month + 1, start.day);
+  late DateTime end = DateTime(start.year, start.month, start.day + 29);
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +140,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                     (value) {
                       startDateController.text = value != null ? '${value.day} - ${value.month} - ${value.year}' : '';
                       start = value ?? DateTime.now();
-                      end = DateTime(start.year, start.month + 1, start.day);
+                      end = DateTime(start.year, start.month, start.day + 29);
                     },
                   );
                 },
@@ -163,7 +163,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   ).then(
                     (value) {
                       endDateController.text = value != null ? '${value.day} - ${value.month} - ${value.year}' : '';
-                      end = value ?? DateTime(start.year, start.month + 1, start.day);
+                      end = value ?? DateTime(start.year, start.month, start.day + 29);
                     },
                   );
                 },
@@ -223,61 +223,40 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                         budgetController.text.isNotEmpty) {
                       if (budgetController.text.toDouble() > 0) {
                         if (memberBox.get(phoneNumberController.text) == null) {
-                          if (end.difference(DateTime.now()).inDays >= 0) {
-                            await memberBox.put(
-                              phoneNumberController.text,
-                              Member(
-                                name: nameController.text,
-                                startDate: start,
-                                endDate: end,
-                                subscriptionBudget: budgetController.text.toDouble(),
-                                profileImageURL: _imageFile?.path,
-                                phoneNumber: phoneNumberController.text,
-                              ),
-                            );
-                            memberList.assignAll(memberBox.values);
-                            memberList.sortedByDescending((member) => member.startDate);
-                            final ctx = end.difference(DateTime.now()).inDays + 1 == 0
-                                ? 'دا آخر يوم'
-                                : end.difference(DateTime.now()).inDays + 1 > 10
-                                    ? 'يوم'
-                                    : end.difference(DateTime.now()).inDays + 1 >= 3
-                                        ? 'أيام'
-                                        : end.difference(DateTime.now()).inDays + 1 == 2
-                                            ? 'يومين'
-                                            : 'يوم';
-                            Get.snackbar(
-                              'memberAdded'.tr,
-                              'daysLeft'.trParams(
-                                {
-                                  'days':
-                                      '${end.difference(DateTime.now()).inDays + 1 > 2 ? '${end.difference(DateTime.now()).inDays + 1} ' : ''}$ctx',
-                                },
-                              ),
-                              backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                              colorText: Colors.white,
-                              borderRadius: 12,
-                              margin: const EdgeInsets.all(12),
-                              icon: const Icon(Icons.check_circle, color: Colors.white),
-                            );
-                            nameController.text = '';
-                            phoneNumberController.text = '';
-                            budgetController.text = '';
-                            startDateController.text = '';
-                            endDateController.text = '';
-                            _imageFile = null;
-                            setState(() {});
-                          } else {
-                            Get.snackbar(
-                              'endSmaller'.tr,
-                              'startBiggerThanEnd'.tr,
-                              backgroundColor: Colors.red.withValues(alpha: 0.5),
-                              colorText: Colors.white,
-                              borderRadius: 12,
-                              margin: const EdgeInsets.all(12),
-                              icon: const Icon(Icons.close, color: Colors.white),
-                            );
-                          }
+                          await memberBox.put(
+                            phoneNumberController.text,
+                            Member(
+                              name: nameController.text,
+                              startDate: start,
+                              endDate: end,
+                              subscriptionBudget: budgetController.text.toDouble(),
+                              profileImageURL: _imageFile?.path,
+                              phoneNumber: phoneNumberController.text,
+                            ),
+                          );
+                          updateDatabase();
+                          Get.snackbar(
+                            'memberAdded'.tr,
+                            end.date.difference(DateTime.now().date).inDays >= 0
+                                ? 'daysLeft'.trParams(
+                                    {
+                                      "days": dayText(end.date.difference(DateTime.now().date).inDays),
+                                    },
+                                  )
+                                : 'الاشتراك خلصان',
+                            backgroundColor: Colors.blue.withValues(alpha: 0.5),
+                            colorText: Colors.white,
+                            borderRadius: 12,
+                            margin: const EdgeInsets.all(12),
+                            icon: const Icon(Icons.check_circle, color: Colors.white),
+                          );
+                          nameController.text = '';
+                          phoneNumberController.text = '';
+                          budgetController.text = '';
+                          startDateController.text = '';
+                          endDateController.text = '';
+                          _imageFile = null;
+                          setState(() {});
                         } else {
                           Get.snackbar(
                             'error'.tr,
@@ -320,5 +299,12 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
         ),
       ),
     );
+  }
+
+  String dayText(int count) {
+    if (count == 0) return "يوم";
+    if (count == 1) return "يومين";
+    if (count >= 2 && count <= 9) return "${count + 1} أيام";
+    return "${count + 1} يومًا";
   }
 }

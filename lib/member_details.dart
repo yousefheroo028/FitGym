@@ -43,6 +43,7 @@ class _MemberDetailsState extends State<MemberDetails> {
   }
 
   final months = 1.obs;
+
   @override
   Widget build(BuildContext context) {
     Member member = Get.arguments;
@@ -54,9 +55,9 @@ class _MemberDetailsState extends State<MemberDetails> {
         centerTitle: true,
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: SingleChildScrollView(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               spacing: 8.0,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +84,6 @@ class _MemberDetailsState extends State<MemberDetails> {
                   children: [
                     Text(
                       'personalInfo'.tr,
-                      style: TextStyle(color: Colors.black.withValues(alpha: 0.3)),
                     ),
                   ],
                 ),
@@ -128,7 +128,6 @@ class _MemberDetailsState extends State<MemberDetails> {
                   children: [
                     Text(
                       'subscriptionInfo'.tr,
-                      style: TextStyle(color: Colors.black.withValues(alpha: 0.3)),
                     ),
                   ],
                 ),
@@ -155,8 +154,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                     remainingDays.value >= 0
                         ? 'daysLeft'.trParams(
                             {
-                              "days":
-                                  '${remainingDays.value > 2 ? '${remainingDays.value} ' : ''}${remainingDays.value > 2 ? remainingDays.value > 10 ? 'يوم' : 'أيام' : remainingDays.value == 2 ? 'يومين ' : 'يوم'}',
+                              "days": dayText(remainingDays.value),
                             },
                           )
                         : 'الاشتراك خلص',
@@ -179,8 +177,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       member.delete();
-                      memberList.assignAll(memberBox.values);
-                      memberList.sortedByDescending((member) => member.startDate);
+                      updateDatabase();
                       Get.offAll(() => const HomePage());
                     },
                     label: Text('deleteMember'.tr),
@@ -196,9 +193,9 @@ class _MemberDetailsState extends State<MemberDetails> {
                         flex: 3,
                         child: ElevatedButton.icon(
                           onPressed: () async {
-                            member.renew(months: months.value);
+                            remainingDays.value = member.renew(months: months.value);
                             await member.save();
-                            memberList.assignAll(memberBox.values);
+                            updateDatabase();
                             Get.snackbar(
                               'renewSucceded'.tr,
                               'renewMonths'.trParams(
@@ -218,7 +215,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                             );
                           },
                           style: ButtonStyle(
-                            foregroundColor: WidgetStatePropertyAll(remainingDays.value < 4 ? Colors.red : Colors.white),
+                            foregroundColor: WidgetStatePropertyAll(remainingDays.value < 3 ? Colors.red : Colors.white),
                           ),
                           label: Text('renewMember'.tr),
                           icon: const Icon(Icons.autorenew),
@@ -237,7 +234,6 @@ class _MemberDetailsState extends State<MemberDetails> {
                           label: Text(
                             'عدد شهور التجديد',
                             style: TextStyle(
-                              color: Colors.black.withValues(alpha: 0.3),
                               fontSize: 13,
                             ),
                           ),
@@ -268,8 +264,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                             await _pickImageFromGallery();
                             member.profileImageURL = _imageFile?.path;
                             await member.save();
-                            memberList.assignAll(memberBox.values);
-                            memberList.sortedByDescending((member) => member.startDate);
+                            updateDatabase();
                           },
                           icon: const Icon(Icons.photo_size_select_actual_outlined),
                           label: Text('pickPhoto'.tr),
@@ -281,8 +276,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                             await _pickImageFromCamera();
                             member.profileImageURL = _imageFile?.path;
                             await member.save();
-                            memberList.assignAll(memberBox.values);
-                            memberList.sortedByDescending((member) => member.startDate);
+                            updateDatabase();
                           },
                           icon: const Icon(Icons.camera_alt_outlined),
                           label: Text('takePhoto'.tr),
@@ -297,4 +291,67 @@ class _MemberDetailsState extends State<MemberDetails> {
       ),
     );
   }
+
+  String dayText(int count) {
+    if (count == 0) return "يوم";
+    if (count == 1) return "يومين";
+    if (count >= 2 && count <= 9) return "${count + 1} أيام";
+    return "${count + 1} يومًا";
+  }
 }
+//
+// class EditableFieldEnabled extends StatefulWidget {
+//   final String initialValue;
+//   final Function(String) onChanged;
+//   final String title;
+//
+//   const EditableFieldEnabled({super.key, required this.initialValue, required this.onChanged, required this.title});
+//
+//   @override
+//   State<EditableFieldEnabled> createState() => _EditableFieldEnabledState();
+// }
+//
+// class _EditableFieldEnabledState extends State<EditableFieldEnabled> {
+//   final TextEditingController controller = TextEditingController();
+//   bool isEditable = false;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     controller.text = widget.initialValue;
+//
+//     return GestureDetector(
+//       onLongPress: enable,
+//       child: Row(
+//         children: [
+//           Text(widget.title),
+//           Expanded(
+//             child: TextFormField(
+//               controller: controller,
+//               enabled: isEditable,
+//               autofocus: isEditable,
+//               // style: TextStyle(color: Colors.black),
+//               decoration: InputDecoration(
+//                 enabled: isEditable,
+//                 fillColor: Colors.transparent,
+//               ),
+//               onTapOutside: (event) {
+//                 isEditable = false;
+//                 setState(() {});
+//               },
+//               onFieldSubmitted: (newName) {
+//                 isEditable = false;
+//                 widget.onChanged(newName);
+//                 setState(() {});
+//               },
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   void enable() {
+//     isEditable = true;
+//     setState(() {});
+//   }
+// }

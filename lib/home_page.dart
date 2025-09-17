@@ -73,8 +73,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         );
                         memberBox = await Hive.openBox('members');
-                        memberList.assignAll(memberBox.values);
-                        memberList.sortedByDescending((member) => member.startDate);
+                        updateDatabase();
                       }
                     } else {
                       Get.snackbar(
@@ -299,7 +298,7 @@ class MemberCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: member.getRemainingTime() > 3
+      color: member.getRemainingTime() > 2
           ? Colors.grey.withValues(alpha: 0.1)
           : member.getRemainingTime() >= 0
               ? Colors.orange.withValues(alpha: 0.2)
