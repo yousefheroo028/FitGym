@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'add_player_page.dart';
 import 'main.dart';
 
 class MemberDetails extends StatefulWidget {
@@ -53,6 +54,10 @@ class _MemberDetailsState extends State<MemberDetails> {
     return Scaffold(
       appBar: AppBar(
         title: Text(member.name),
+        leading: IconButton(
+          onPressed: () => Get.to(AddPlayerPage(), arguments: member),
+          icon: const Icon(Icons.edit),
+        ),
         centerTitle: true,
       ),
       body: Center(

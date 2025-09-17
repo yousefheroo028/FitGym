@@ -64,11 +64,12 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
 
   @override
   Widget build(BuildContext context) {
+    Member? member = Get.arguments;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
-        title: Text('addNewPlayer'.tr),
+        title: Text(member != null ? 'تعديل بيانات ${member.name}' : 'إضافة لاعب جديد'),
       ),
       body: Form(
         child: SingleChildScrollView(
@@ -79,6 +80,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
             children: [
               TextFormField(
                 controller: nameController,
+                initialValue: member?.name,
                 onTapOutside: (event) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
                   hintText: 'enterName'.tr,
@@ -96,6 +98,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 ],
                 keyboardType: TextInputType.numberWithOptions(),
                 controller: phoneNumberController,
+                initialValue: member?.phoneNumber,
                 onTapOutside: (event) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
                   hintText: 'enterPhone'.tr,
@@ -114,6 +117,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   FilteringTextInputFormatter.digitsOnly,
                 ],
                 keyboardType: TextInputType.numberWithOptions(),
+                initialValue: member?.subscriptionBudget.toString(),
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
@@ -133,7 +137,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 onTap: () async {
                   await showDatePicker(
                     context: context,
-                    initialDate: start,
+                    initialDate: member?.startDate ?? start,
                     firstDate: DateTime(DateTime.now().year - 1, DateTime.now().month, DateTime.now().day),
                     lastDate: DateTime(DateTime.now().year + 1, DateTime.now().month, DateTime.now().day),
                   ).then(
@@ -157,7 +161,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 onTap: () async {
                   await showDatePicker(
                     context: context,
-                    initialDate: DateTime.now(),
+                    initialDate: member?.endDate ?? end,
                     firstDate: DateTime(DateTime.now().year - 1, DateTime.now().month, DateTime.now().day),
                     lastDate: DateTime(DateTime.now().year + 1, DateTime.now().month, DateTime.now().day),
                   ).then(
