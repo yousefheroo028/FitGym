@@ -249,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 Expanded(
                   child: Obx(
-                    () => !isNameEmpty.value && !isPhoneNumberEmpty.value
+                    () => !isNameEmpty.value && !isPhoneNumberEmpty.value && memberList.isNotEmpty
                         ? GridView.count(
                             crossAxisCount: 2,
                             physics: BouncingScrollPhysics(),
