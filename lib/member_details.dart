@@ -59,7 +59,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                             : const AssetImage('assets/icon/placeholder.jpeg'),
                         fit: BoxFit.contain,
                       ),
-                      border: Border.all(color: Colors.blue, width: 1),
+                      border: Border.all(color: Colors.teal.shade400, width: 1),
                     ),
                   ),
                 ),

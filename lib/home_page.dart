@@ -325,7 +325,7 @@ class MemberCard extends StatelessWidget {
                           : AssetImage('assets/icon/placeholder.jpeg'),
                       fit: BoxFit.cover,
                     ),
-                    border: Border.all(color: Colors.blue, width: 3),
+                    border: Border.all(color: Colors.teal.shade400, width: 3),
                   ),
                 ),
               ),
