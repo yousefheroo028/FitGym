@@ -25,7 +25,6 @@ Future<void> main() async {
             debugShowCheckedModeBanner: false,
           ),
   );
-  // runApp(const MyApp());
 }
 
 late final String deviceId;
@@ -44,35 +43,6 @@ void updateDatabase() {
   memberList.assignAll(memberBox.values);
   memberList.sortedByDescending((member) => member.startDate);
 }
-
-// void loadMembers() async {
-//   final media = shareController.hiveFile;
-//   if (media == null) {
-//     memberList.assignAll(memberBox.values);
-//   } else {
-//     File file = File(media);
-//     if (await file.exists()) {
-//       print('asdafwe');
-//       await Hive.close();
-//       final dir = await getApplicationDocumentsDirectory();
-//       final hiveFile = File('${dir.path}/members.hive');
-//       await file.copy(hiveFile.path);
-//       Get.snackbar(
-//         'operationSucceeded'.tr,
-//         'fileIsSelected'.tr,
-//         backgroundColor: Colors.blue.withValues(alpha: 0.5),
-//         colorText: Colors.white,
-//         icon: const Icon(
-//           Icons.check_circle,
-//           color: Colors.white,
-//         ),
-//       );
-//       memberBox = await Hive.openBox('members');
-//       memberList.assignAll(memberBox.values);
-//       return;
-//     }
-//   }
-// }
 
 Future<bool> checkIfAllowed() async {
   final deviceInfo = DeviceInfoPlugin();
