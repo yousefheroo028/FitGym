@@ -30,7 +30,10 @@ class _MemberDetailsState extends State<MemberDetails> {
         title: Text(member.name),
         actions: [
           IconButton(
-            onPressed: () async => member = await Get.to(AddPlayerPage(), arguments: member),
+            onPressed: () async {
+              member = await Get.to(AddPlayerPage(), arguments: member);
+              setState(() {});
+            },
             icon: const Icon(Icons.edit),
           ),
         ],
