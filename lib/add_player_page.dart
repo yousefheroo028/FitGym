@@ -277,9 +277,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                         onPressed: () async {
                           if (nameController.text.isEmpty &&
                               phoneNumberController.text.isEmpty &&
-                              budgetController.text.isEmpty &&
-                              startDateController.text.isEmpty &&
-                              endDateController.text.isEmpty) {
+                              budgetController.text.isEmpty) {
                             Get.snackbar('completeData'.tr, 'mustFullData'.tr);
                             return;
                           }
