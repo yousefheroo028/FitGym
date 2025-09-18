@@ -106,23 +106,24 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   ),
                 ),
               ),
-              TextFormField(
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                keyboardType: TextInputType.numberWithOptions(),
-                controller: phoneNumberController,
-                onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                decoration: InputDecoration(
-                  hintText: 'enterPhone'.tr,
-                  enabledBorder: InputBorder.none,
-                  fillColor: Colors.grey.withValues(alpha: 0.1),
-                  suffixIcon: Icon(
-                    Icons.phone,
-                    color: Colors.grey.withValues(alpha: 0.6),
+              if (member == null)
+                TextFormField(
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  keyboardType: TextInputType.numberWithOptions(),
+                  controller: phoneNumberController,
+                  onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                  decoration: InputDecoration(
+                    hintText: 'enterPhone'.tr,
+                    enabledBorder: InputBorder.none,
+                    fillColor: Colors.grey.withValues(alpha: 0.1),
+                    suffixIcon: Icon(
+                      Icons.phone,
+                      color: Colors.grey.withValues(alpha: 0.6),
+                    ),
                   ),
                 ),
-              ),
               TextFormField(
                 controller: budgetController,
                 onTapOutside: (event) => FocusScope.of(context).unfocus(),
@@ -278,11 +279,29 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                           if (nameController.text.isEmpty &&
                               phoneNumberController.text.isEmpty &&
                               budgetController.text.isEmpty) {
-                            Get.snackbar('completeData'.tr, 'mustFullData'.tr);
+                            Get.snackbar(
+                              'completeData'.tr,
+                              'mustFullData'.tr,
+                              backgroundColor: Colors.red.withValues(alpha: 0.5),
+                              colorText: Colors.white,
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                              ),
+                            );
                             return;
                           }
                           if (memberList.map((member) => member.phoneNumber).contains(phoneNumberController.text)) {
-                            Get.snackbar('error'.tr, 'existingOne'.tr);
+                            Get.snackbar(
+                              'error'.tr,
+                              'existingOne'.tr,
+                              backgroundColor: Colors.red.withValues(alpha: 0.5),
+                              colorText: Colors.white,
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                              ),
+                            );
                             return;
                           }
                           await memberBox.put(
