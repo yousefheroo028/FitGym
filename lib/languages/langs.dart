@@ -32,6 +32,7 @@ class Languages extends Translations {
           'renewMember': 'جدد الاشتراك',
           'renewSucceded': 'تم تجديد الاشتراك بنجاح',
           'editDataOf': 'تعديل بيانات @name',
+          'editPlayer': 'تحديث',
           'mustFullData': 'لازم تدخل الاسم ورقم الموبايل ومبلغ الاشتراك',
           'copied': 'تم نسخ رقم الموبايل الخاص ب @name',
           'numberCopied': 'رقم الموبايل: @name',
@@ -53,6 +54,7 @@ class Languages extends Translations {
           'soon': 'قرب يخلص',
           'fileDoesntFound': 'مالقيناش الفايل',
           'fileIsSelected': 'تم تحديث الداتا',
+          'memberEdited': 'تم تحديث بيانات اللاعب',
           'export': 'ابعت',
           'errorFile': 'في مشكلة',
           "nameOfMember": "اكتب اسم اللاعب"

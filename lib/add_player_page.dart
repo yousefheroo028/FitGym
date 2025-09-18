@@ -62,14 +62,29 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
   DateTime start = DateTime.now();
   late DateTime end = DateTime(start.year, start.month, start.day + 29);
 
+  Member? member = Get.arguments;
+  @override
+  void initState() {
+    if (member != null) {
+      if (member?.profileImageURL != null) _imageFile = File(member!.profileImageURL!);
+      nameController.text = member!.name;
+      phoneNumberController.text = member!.phoneNumber;
+      budgetController.text = member!.subscriptionBudget.toInt().toString();
+      startDateController.text = '${member!.startDate.day} - ${member!.startDate.month} - ${member!.startDate.year}';
+      endDateController.text = '${member!.endDate.day} - ${member!.endDate.month} - ${member!.endDate.year}';
+      start = member!.startDate;
+      end = member!.endDate;
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    Member? member = Get.arguments;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
-        title: Text(member != null ? 'تعديل بيانات ${member.name}' : 'إضافة لاعب جديد'),
+        title: Text(member != null ? 'تعديل بيانات ${member!.name}' : 'إضافة لاعب جديد'),
       ),
       body: Form(
         child: SingleChildScrollView(
@@ -80,7 +95,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
             children: [
               TextFormField(
                 controller: nameController,
-                initialValue: member?.name,
                 onTapOutside: (event) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
                   hintText: 'enterName'.tr,
@@ -98,7 +112,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 ],
                 keyboardType: TextInputType.numberWithOptions(),
                 controller: phoneNumberController,
-                initialValue: member?.phoneNumber,
                 onTapOutside: (event) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
                   hintText: 'enterPhone'.tr,
@@ -117,7 +130,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   FilteringTextInputFormatter.digitsOnly,
                 ],
                 keyboardType: TextInputType.numberWithOptions(),
-                initialValue: member?.subscriptionBudget.toString(),
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
@@ -137,7 +149,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 onTap: () async {
                   await showDatePicker(
                     context: context,
-                    initialDate: member?.startDate ?? start,
                     firstDate: DateTime(DateTime.now().year - 1, DateTime.now().month, DateTime.now().day),
                     lastDate: DateTime(DateTime.now().year + 1, DateTime.now().month, DateTime.now().day),
                   ).then(
@@ -161,7 +172,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 onTap: () async {
                   await showDatePicker(
                     context: context,
-                    initialDate: member?.endDate ?? end,
                     firstDate: DateTime(DateTime.now().year - 1, DateTime.now().month, DateTime.now().day),
                     lastDate: DateTime(DateTime.now().year + 1, DateTime.now().month, DateTime.now().day),
                   ).then(
@@ -220,13 +230,63 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 ),
               SizedBox(
                 width: context.width,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (nameController.text.isNotEmpty &&
-                        phoneNumberController.text.isNotEmpty &&
-                        budgetController.text.isNotEmpty) {
-                      if (budgetController.text.toDouble() > 0) {
-                        if (memberBox.get(phoneNumberController.text) == null) {
+                child: member != null
+                    ? ElevatedButton(
+                        onPressed: () async {
+                          await memberBox.put(
+                            member!.phoneNumber,
+                            Member(
+                              name: nameController.text,
+                              startDate: start,
+                              endDate: end,
+                              subscriptionBudget: budgetController.text.toDouble(),
+                              profileImageURL: _imageFile?.path,
+                              phoneNumber: member!.phoneNumber,
+                            ),
+                          );
+                          Get.back(
+                            result: Member(
+                              name: nameController.text,
+                              startDate: start,
+                              endDate: end,
+                              subscriptionBudget: budgetController.text.toDouble(),
+                              profileImageURL: _imageFile?.path,
+                              phoneNumber: member!.phoneNumber,
+                            ),
+                          );
+                          updateDatabase();
+                          Get.snackbar(
+                            'memberEdited'.tr,
+                            end.date.difference(DateTime.now().date).inDays >= 0
+                                ? 'daysLeft'.trParams(
+                                    {
+                                      "days": dayText(end.date.difference(DateTime.now().date).inDays),
+                                    },
+                                  )
+                                : 'الاشتراك خلصان',
+                            backgroundColor: Colors.blue.withValues(alpha: 0.5),
+                            colorText: Colors.white,
+                            borderRadius: 12,
+                            margin: const EdgeInsets.all(12),
+                            icon: const Icon(Icons.check_circle, color: Colors.white),
+                          );
+                        },
+                        child: Text('editPlayer'.tr),
+                      )
+                    : ElevatedButton(
+                        onPressed: () async {
+                          if (nameController.text.isEmpty &&
+                              phoneNumberController.text.isEmpty &&
+                              budgetController.text.isEmpty &&
+                              startDateController.text.isEmpty &&
+                              endDateController.text.isEmpty) {
+                            Get.snackbar('completeData'.tr, 'mustFullData'.tr);
+                            return;
+                          }
+                          if (memberList.map((member) => member.phoneNumber).contains(phoneNumberController.text)) {
+                            Get.snackbar('error'.tr, 'existingOne'.tr);
+                            return;
+                          }
                           await memberBox.put(
                             phoneNumberController.text,
                             Member(
@@ -261,42 +321,9 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                           endDateController.text = '';
                           _imageFile = null;
                           setState(() {});
-                        } else {
-                          Get.snackbar(
-                            'error'.tr,
-                            'existingOne'.tr,
-                            backgroundColor: Colors.red.withValues(alpha: 0.5),
-                            colorText: Colors.white,
-                            borderRadius: 12,
-                            margin: const EdgeInsets.all(12),
-                            icon: const Icon(Icons.close, color: Colors.white),
-                          );
-                        }
-                      } else {
-                        Get.snackbar(
-                          'invalidBudgetValue'.tr,
-                          'invalidBudgetValueDetailed'.tr,
-                          backgroundColor: Colors.red.withValues(alpha: 0.5),
-                          colorText: Colors.white,
-                          borderRadius: 12,
-                          margin: const EdgeInsets.all(12),
-                          icon: const Icon(Icons.close, color: Colors.white),
-                        );
-                      }
-                    } else {
-                      Get.snackbar(
-                        'completeData'.tr,
-                        'mustFullData'.tr,
-                        backgroundColor: Colors.red.withValues(alpha: 0.5),
-                        colorText: Colors.white,
-                        borderRadius: 12,
-                        margin: const EdgeInsets.all(12),
-                        icon: const Icon(Icons.close, color: Colors.white),
-                      );
-                    }
-                  },
-                  child: Text('addNewPlayer'.tr),
-                ),
+                        },
+                        child: Text('addNewPlayer'.tr),
+                      ),
               ),
             ],
           ),

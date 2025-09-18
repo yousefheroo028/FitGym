@@ -1,12 +1,10 @@
 import 'dart:io';
 
-import 'package:dartx/dartx.dart';
 import 'package:fit_gym/home_page.dart';
 import 'package:fit_gym/member.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 
 import 'add_player_page.dart';
 import 'main.dart';
@@ -19,30 +17,6 @@ class MemberDetails extends StatefulWidget {
 }
 
 class _MemberDetailsState extends State<MemberDetails> {
-  File? _imageFile;
-
-  final ImagePicker _picker = ImagePicker();
-
-  Future<void> _pickImageFromCamera() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera, maxHeight: 720, maxWidth: 720);
-
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-    }
-  }
-
-  Future<void> _pickImageFromGallery() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery, maxHeight: 720, maxWidth: 720);
-
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-    }
-  }
-
   final months = 1.obs;
   Member member = Get.arguments;
   @override
@@ -54,16 +28,18 @@ class _MemberDetailsState extends State<MemberDetails> {
     return Scaffold(
       appBar: AppBar(
         title: Text(member.name),
-        leading: IconButton(
-          onPressed: () => Get.to(AddPlayerPage(), arguments: member),
-          icon: const Icon(Icons.edit),
-        ),
+        actions: [
+          IconButton(
+            onPressed: () async => member = await Get.to(AddPlayerPage(), arguments: member),
+            icon: const Icon(Icons.edit),
+          ),
+        ],
         centerTitle: true,
       ),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Column(
               spacing: 8.0,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,108 +174,6 @@ class _MemberDetailsState extends State<MemberDetails> {
                     icon: const Icon(Icons.delete_outline),
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  spacing: 16.0,
-                  children: [
-                    Obx(
-                      () => Expanded(
-                        flex: 3,
-                        child: ElevatedButton.icon(
-                          onPressed: () async {
-                            remainingDays.value = member.renew(months: months.value);
-                            startDate.value = member.startDate;
-                            endDate.value = member.endDate;
-                            await member.save();
-                            updateDatabase();
-                            Get.snackbar(
-                              'renewSucceded'.tr,
-                              'renewMonths'.trParams(
-                                {
-                                  "months": months.value == 1 || months.value > 10
-                                      ? '${months.value > 2 ? '${months.value} ' : ''}شهر'
-                                      : months.value == 2
-                                          ? 'شهرين'
-                                          : '${months.value} شهور',
-                                },
-                              ),
-                              backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                              colorText: Colors.white,
-                              borderRadius: 12,
-                              margin: const EdgeInsets.all(12),
-                              icon: const Icon(Icons.check_circle, color: Colors.white),
-                            );
-                          },
-                          style: ButtonStyle(
-                            foregroundColor: WidgetStatePropertyAll(remainingDays.value < 3 ? Colors.red : Colors.white),
-                          ),
-                          label: Text('renewMember'.tr),
-                          icon: const Icon(Icons.autorenew),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: TextField(
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        keyboardType: TextInputType.number,
-                        onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                        decoration: InputDecoration(
-                          label: Text(
-                            'عدد شهور التجديد',
-                            style: TextStyle(
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        onChanged: (value) {
-                          if (value.isNotEmpty) {
-                            if (value.toInt() != 0) {
-                              months.value = int.parse(value);
-                            } else {
-                              months.value = 1;
-                            }
-                          } else {
-                            months.value = 1;
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                if (member.profileImageURL == null)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    spacing: 16.0,
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () async {
-                            await _pickImageFromGallery();
-                            member.profileImageURL = _imageFile?.path;
-                            await member.save();
-                            updateDatabase();
-                          },
-                          icon: const Icon(Icons.photo_size_select_actual_outlined),
-                          label: Text('pickPhoto'.tr),
-                        ),
-                      ),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () async {
-                            await _pickImageFromCamera();
-                            member.profileImageURL = _imageFile?.path;
-                            await member.save();
-                            updateDatabase();
-                          },
-                          icon: const Icon(Icons.camera_alt_outlined),
-                          label: Text('takePhoto'.tr),
-                        ),
-                      ),
-                    ],
-                  ),
               ],
             ),
           ),
@@ -315,59 +189,3 @@ class _MemberDetailsState extends State<MemberDetails> {
     return "${count + 1} يومًا";
   }
 }
-//
-// class EditableFieldEnabled extends StatefulWidget {
-//   final String initialValue;
-//   final Function(String) onChanged;
-//   final String title;
-//
-//   const EditableFieldEnabled({super.key, required this.initialValue, required this.onChanged, required this.title});
-//
-//   @override
-//   State<EditableFieldEnabled> createState() => _EditableFieldEnabledState();
-// }
-//
-// class _EditableFieldEnabledState extends State<EditableFieldEnabled> {
-//   final TextEditingController controller = TextEditingController();
-//   bool isEditable = false;
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     controller.text = widget.initialValue;
-//
-//     return GestureDetector(
-//       onLongPress: enable,
-//       child: Row(
-//         children: [
-//           Text(widget.title),
-//           Expanded(
-//             child: TextFormField(
-//               controller: controller,
-//               enabled: isEditable,
-//               autofocus: isEditable,
-//               // style: TextStyle(color: Colors.black),
-//               decoration: InputDecoration(
-//                 enabled: isEditable,
-//                 fillColor: Colors.transparent,
-//               ),
-//               onTapOutside: (event) {
-//                 isEditable = false;
-//                 setState(() {});
-//               },
-//               onFieldSubmitted: (newName) {
-//                 isEditable = false;
-//                 widget.onChanged(newName);
-//                 setState(() {});
-//               },
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   void enable() {
-//     isEditable = true;
-//     setState(() {});
-//   }
-// }

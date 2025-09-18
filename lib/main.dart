@@ -1,31 +1,34 @@
 import 'dart:async';
 
 import 'package:dartx/dartx.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:fit_gym/languages/langs.dart';
 import 'package:fit_gym/member.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart' hide Intent;
 import 'package:get/get.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initHive();
-  // bool allowed = await checkIfAllowed();
-  // runApp(
-  //   allowed
-  //       ? const MyApp()
-  //       : const GetMaterialApp(
-  //           home: NotAllowedPage(),
-  //           debugShowCheckedModeBanner: false,
-  //         ),
-  // );
-  runApp(const MyApp());
+  bool allowed = await checkIfAllowed();
+  runApp(
+    allowed
+        ? const MyApp()
+        : const GetMaterialApp(
+            home: NotAllowedPage(),
+            debugShowCheckedModeBanner: false,
+          ),
+  );
+  // runApp(const MyApp());
 }
 
-// late final String deviceId;
+late final String deviceId;
 late Box<Member> memberBox;
 
 const boxName = 'members';
@@ -70,24 +73,22 @@ void updateDatabase() {
 //     }
 //   }
 // }
-//
-// final shareController = Get.put(ShareController());
 
-// Future<bool> checkIfAllowed() async {
-//   final deviceInfo = DeviceInfoPlugin();
-//   final androidInfo = await deviceInfo.androidInfo;
-//   deviceId = androidInfo.id;
-//
-//   const allowedDevices = [
-//     'RKQ1.201217.002',
-//     'TP1A.220624.014',
-//     'AE3A.240806.036',
-//     'TP1A.220624.014',
-//     'HONORBRC-N21',
-//   ];
-//
-//   return allowedDevices.contains(deviceId);
-// }
+Future<bool> checkIfAllowed() async {
+  final deviceInfo = DeviceInfoPlugin();
+  final androidInfo = await deviceInfo.androidInfo;
+  deviceId = androidInfo.id;
+
+  const allowedDevices = [
+    'RKQ1.201217.002',
+    'TP1A.220624.014',
+    'AE3A.240806.036',
+    'TP1A.220624.014',
+    'HONORBRC-N21',
+  ];
+
+  return allowedDevices.contains(deviceId);
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -247,106 +248,106 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// class NotAllowedPage extends StatelessWidget {
-//   const NotAllowedPage({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final colorScheme = Theme.of(context).colorScheme;
-//     return Scaffold(
-//       backgroundColor: colorScheme.surface,
-//       appBar: AppBar(
-//         title: Text(deviceId),
-//       ),
-//       body: Center(
-//         child: Padding(
-//           padding: const EdgeInsets.all(24.0),
-//           child: Card(
-//             elevation: 0,
-//             shape: RoundedRectangleBorder(
-//               borderRadius: BorderRadius.circular(20),
-//               side: BorderSide(
-//                 color: Colors.red.withValues(alpha: 0.2),
-//               ),
-//             ),
-//             color: colorScheme.errorContainer,
-//             child: Padding(
-//               padding: const EdgeInsets.all(32.0),
-//               child: Column(
-//                 mainAxisSize: MainAxisSize.min,
-//                 children: [
-//                   Icon(
-//                     Icons.block,
-//                     size: 80,
-//                     color: colorScheme.onErrorContainer,
-//                   ),
-//                   const SizedBox(height: 20),
-//                   Text(
-//                     "غير مسموح لك باستخدام التطبيق",
-//                     textAlign: TextAlign.center,
-//                     style: TextStyle(
-//                       fontSize: 22,
-//                       fontWeight: FontWeight.bold,
-//                       color: colorScheme.onErrorContainer,
-//                     ),
-//                   ),
-//                   const SizedBox(height: 12),
-//                   Text(
-//                     "أنت غير مشترك في هذا البرنامج. برجاء التواصل مع الدعم الفني.",
-//                     textAlign: TextAlign.center,
-//                     style: TextStyle(
-//                       fontSize: 16,
-//                       color: colorScheme.onErrorContainer.withValues(alpha: 0.8),
-//                     ),
-//                   ),
-//                   const SizedBox(height: 30),
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//                     children: [
-//                       ElevatedButton.icon(
-//                         onPressed: () async {
-//                           await launchUrl(Uri(scheme: 'tel', path: '01140169448'));
-//                         },
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: colorScheme.onErrorContainer,
-//                           foregroundColor: colorScheme.errorContainer,
-//                           padding: const EdgeInsets.symmetric(
-//                             horizontal: 24,
-//                             vertical: 12,
-//                           ),
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(12),
-//                           ),
-//                         ),
-//                         icon: const Icon(Icons.phone),
-//                         label: const Text("اتصل"),
-//                       ),
-//                       ElevatedButton.icon(
-//                         onPressed: () async {
-//                           await launchUrl(Uri.parse('https://wa.me/+201140169448/'));
-//                         },
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: colorScheme.onErrorContainer,
-//                           foregroundColor: colorScheme.errorContainer,
-//                           padding: const EdgeInsets.symmetric(
-//                             horizontal: 24,
-//                             vertical: 12,
-//                           ),
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(12),
-//                           ),
-//                         ),
-//                         icon: const FaIcon(FontAwesomeIcons.whatsapp),
-//                         label: const Text("واتس"),
-//                       ),
-//                     ],
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+class NotAllowedPage extends StatelessWidget {
+  const NotAllowedPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: Text(deviceId),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(
+                color: Colors.red.withValues(alpha: 0.2),
+              ),
+            ),
+            color: colorScheme.errorContainer,
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.block,
+                    size: 80,
+                    color: colorScheme.onErrorContainer,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "غير مسموح لك باستخدام التطبيق",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onErrorContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "أنت غير مشترك في هذا البرنامج. برجاء التواصل مع الدعم الفني.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onErrorContainer.withValues(alpha: 0.8),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          await launchUrl(Uri(scheme: 'tel', path: '01140169448'));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.onErrorContainer,
+                          foregroundColor: colorScheme.errorContainer,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.phone),
+                        label: const Text("اتصل"),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          await launchUrl(Uri.parse('https://wa.me/+201140169448/'));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.onErrorContainer,
+                          foregroundColor: colorScheme.errorContainer,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const FaIcon(FontAwesomeIcons.whatsapp),
+                        label: const Text("واتس"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
