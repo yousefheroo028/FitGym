@@ -87,147 +87,143 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
         centerTitle: true,
         title: Text(member != null ? 'تعديل بيانات ${member!.name}' : 'إضافة لاعب جديد'),
       ),
-      body: Form(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            spacing: 16.0,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              buildTextFiled(nameController, 'enterName'.tr, Icons.text_fields, false),
-              if (member == null) buildTextFiled(phoneNumberController, 'enterPhone'.tr, Icons.phone, true),
-              buildTextFiled(budgetController, 'enterBudget'.tr, Icons.attach_money, true),
-              showDatePickerField(startDateController, 'enterStartDate'.tr),
-              showDatePickerField(endDateController, 'enterEndDate'.tr),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                spacing: 16.0,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          spacing: 16.0,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            buildTextFiled(nameController, 'enterName'.tr, Icons.text_fields, false),
+            if (member == null) buildTextFiled(phoneNumberController, 'enterPhone'.tr, Icons.phone, true),
+            buildTextFiled(budgetController, 'enterBudget'.tr, Icons.attach_money, true),
+            showDatePickerField(startDateController, 'enterStartDate'.tr),
+            showDatePickerField(endDateController, 'enterEndDate'.tr),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              spacing: 16.0,
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      await _pickImageFromGallery();
+                    },
+                    icon: const Icon(Icons.photo_size_select_actual_outlined),
+                    label: Text('pickPhoto'.tr),
+                  ),
+                ),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      await _pickImageFromCamera();
+                    },
+                    icon: const Icon(Icons.camera_alt_outlined),
+                    label: Text('takePhoto'.tr),
+                  ),
+                ),
+              ],
+            ),
+            if (_imageFile != null)
+              Column(
                 children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        await _pickImageFromGallery();
-                      },
-                      icon: const Icon(Icons.photo_size_select_actual_outlined),
-                      label: Text('pickPhoto'.tr),
-                    ),
+                  Image.file(
+                    _imageFile!,
+                    height: 200,
                   ),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        await _pickImageFromCamera();
-                      },
-                      icon: const Icon(Icons.camera_alt_outlined),
-                      label: Text('takePhoto'.tr),
-                    ),
-                  ),
+                  IconButton(
+                    onPressed: () {
+                      _imageFile = null;
+                      setState(() {});
+                    },
+                    icon: const Icon(Icons.close),
+                  )
                 ],
               ),
-              if (_imageFile != null)
-                Column(
-                  children: [
-                    Image.file(
-                      _imageFile!,
-                      height: 200,
-                    ),
-                    IconButton(
-                      onPressed: () {
+            SizedBox(
+              width: context.width,
+              child: member != null
+                  ? ElevatedButton(
+                      onPressed: () async {
+                        await memberBox.put(
+                          member!.phoneNumber,
+                          Member(
+                            name: nameController.text,
+                            startDate: start,
+                            endDate: end,
+                            subscriptionBudget: budgetController.text.toDouble(),
+                            profileImageURL: _imageFile?.path,
+                            phoneNumber: member!.phoneNumber,
+                          ),
+                        );
+                        Get.back(
+                          result: Member(
+                            name: nameController.text,
+                            startDate: start,
+                            endDate: end,
+                            subscriptionBudget: budgetController.text.toDouble(),
+                            profileImageURL: _imageFile?.path,
+                            phoneNumber: member!.phoneNumber,
+                          ),
+                        );
+                        updateDatabase();
+                        viewSnackBar(
+                          'memberEdited'.tr,
+                          end.date.difference(DateTime.now().date).inDays >= 0
+                              ? 'daysLeft'.trParams(
+                                  {
+                                    "days": dayText(end.date.difference(DateTime.now().date).inDays),
+                                  },
+                                )
+                              : 'الاشتراك خلصان',
+                          true,
+                        );
+                      },
+                      child: Text('editPlayer'.tr),
+                    )
+                  : ElevatedButton(
+                      onPressed: () async {
+                        if (nameController.text.isEmpty && phoneNumberController.text.isEmpty && budgetController.text.isEmpty) {
+                          viewSnackBar('completeData'.tr, 'mustFullData'.tr, false);
+                          return;
+                        }
+                        if (memberList.map((member) => member.phoneNumber).contains(phoneNumberController.text)) {
+                          viewSnackBar('error'.tr, 'existingOne'.tr, false);
+                          return;
+                        }
+                        await memberBox.put(
+                          phoneNumberController.text,
+                          Member(
+                            name: nameController.text,
+                            startDate: start,
+                            endDate: end,
+                            subscriptionBudget: budgetController.text.toDouble(),
+                            profileImageURL: _imageFile?.path,
+                            phoneNumber: phoneNumberController.text,
+                          ),
+                        );
+                        updateDatabase();
+                        viewSnackBar(
+                          'memberAdded'.tr,
+                          end.date.difference(DateTime.now().date).inDays >= 0
+                              ? 'daysLeft'.trParams(
+                                  {
+                                    "days": dayText(end.date.difference(DateTime.now().date).inDays),
+                                  },
+                                )
+                              : 'الاشتراك خلصان',
+                          true,
+                        );
+                        nameController.text = '';
+                        phoneNumberController.text = '';
+                        budgetController.text = '';
+                        startDateController.text = '';
+                        endDateController.text = '';
                         _imageFile = null;
                         setState(() {});
                       },
-                      icon: const Icon(Icons.close),
-                    )
-                  ],
-                ),
-              SizedBox(
-                width: context.width,
-                child: member != null
-                    ? ElevatedButton(
-                        onPressed: () async {
-                          await memberBox.put(
-                            member!.phoneNumber,
-                            Member(
-                              name: nameController.text,
-                              startDate: start,
-                              endDate: end,
-                              subscriptionBudget: budgetController.text.toDouble(),
-                              profileImageURL: _imageFile?.path,
-                              phoneNumber: member!.phoneNumber,
-                            ),
-                          );
-                          Get.back(
-                            result: Member(
-                              name: nameController.text,
-                              startDate: start,
-                              endDate: end,
-                              subscriptionBudget: budgetController.text.toDouble(),
-                              profileImageURL: _imageFile?.path,
-                              phoneNumber: member!.phoneNumber,
-                            ),
-                          );
-                          updateDatabase();
-                          viewSnackBar(
-                            'memberEdited'.tr,
-                            end.date.difference(DateTime.now().date).inDays >= 0
-                                ? 'daysLeft'.trParams(
-                                    {
-                                      "days": dayText(end.date.difference(DateTime.now().date).inDays),
-                                    },
-                                  )
-                                : 'الاشتراك خلصان',
-                            true,
-                          );
-                        },
-                        child: Text('editPlayer'.tr),
-                      )
-                    : ElevatedButton(
-                        onPressed: () async {
-                          if (nameController.text.isEmpty &&
-                              phoneNumberController.text.isEmpty &&
-                              budgetController.text.isEmpty) {
-                            viewSnackBar('completeData'.tr, 'mustFullData'.tr, false);
-                            return;
-                          }
-                          if (memberList.map((member) => member.phoneNumber).contains(phoneNumberController.text)) {
-                            viewSnackBar('error'.tr, 'existingOne'.tr, false);
-                            return;
-                          }
-                          await memberBox.put(
-                            phoneNumberController.text,
-                            Member(
-                              name: nameController.text,
-                              startDate: start,
-                              endDate: end,
-                              subscriptionBudget: budgetController.text.toDouble(),
-                              profileImageURL: _imageFile?.path,
-                              phoneNumber: phoneNumberController.text,
-                            ),
-                          );
-                          updateDatabase();
-                          viewSnackBar(
-                            'memberAdded'.tr,
-                            end.date.difference(DateTime.now().date).inDays >= 0
-                                ? 'daysLeft'.trParams(
-                                    {
-                                      "days": dayText(end.date.difference(DateTime.now().date).inDays),
-                                    },
-                                  )
-                                : 'الاشتراك خلصان',
-                            true,
-                          );
-                          nameController.text = '';
-                          phoneNumberController.text = '';
-                          budgetController.text = '';
-                          startDateController.text = '';
-                          endDateController.text = '';
-                          _imageFile = null;
-                          setState(() {});
-                        },
-                        child: Text('addNewPlayer'.tr),
-                      ),
-              ),
-            ],
-          ),
+                      child: Text('addNewPlayer'.tr),
+                    ),
+            ),
+          ],
         ),
       ),
     );
