@@ -62,38 +62,15 @@ class _HomePageState extends State<HomePage> {
                         final dir = await getApplicationDocumentsDirectory();
                         final hiveFile = File('${dir.path}/members.hive');
                         await file.copy(hiveFile.path);
-                        Get.snackbar(
-                          'operationSucceeded'.tr,
-                          'fileIsSelected'.tr,
-                          backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                          colorText: Colors.white,
-                          icon: const Icon(
-                            Icons.check_circle,
-                            color: Colors.white,
-                          ),
-                        );
+                        viewSnackBar('operationSucceeded'.tr, 'fileIsSelected'.tr, true);
                         memberBox = await Hive.openBox('members');
                         updateDatabase();
                       }
                     } else {
-                      Get.snackbar(
-                        'operationStoped'.tr,
-                        'fileIsNotSelected'.tr,
-                        backgroundColor: Colors.red.withValues(alpha: 0.5),
-                        colorText: Colors.white,
-                        icon: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                        ),
-                      );
+                      viewSnackBar('operationStoped'.tr, 'fileIsNotSelected'.tr, false);
                     }
                   },
-                  child: Text(
-                    'import'.tr,
-                    style: const TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
+                  child: Text('import'.tr, style: const TextStyle(fontSize: 16)),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -152,13 +129,7 @@ class _HomePageState extends State<HomePage> {
                           suffixIconColor: Colors.black.withValues(alpha: 0.6),
                         ),
                         onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                        onChanged: (value) {
-                          memberList.assignAll(
-                            memberBox.values.where((member) => member.name.toLowerCase().contains(value.toLowerCase())),
-                          );
-                          isNameEmpty.value = memberList.isEmpty;
-                          memberList.sortedByDescending((member) => member.startDate);
-                        },
+                        onChanged: filterByName,
                       ),
                       TextField(
                         controller: memberSearchByPhoneNumberController,
@@ -173,13 +144,7 @@ class _HomePageState extends State<HomePage> {
                           FilteringTextInputFormatter.digitsOnly,
                         ],
                         onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                        onChanged: (value) {
-                          memberList.assignAll(
-                            memberBox.values.where((member) => member.phoneNumber.startsWith(value)),
-                          );
-                          isPhoneNumberEmpty.value = memberList.isEmpty;
-                          memberList.sortedByDescending((member) => member.startDate);
-                        },
+                        onChanged: filterByPhoneNumber,
                       ),
                       Obx(
                         () => Row(
@@ -209,7 +174,7 @@ class _HomePageState extends State<HomePage> {
                                 },
                                 child: Text(
                                   'soon'.tr,
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),
@@ -237,7 +202,7 @@ class _HomePageState extends State<HomePage> {
                                 },
                                 child: Text(
                                   'expired'.tr,
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),
@@ -252,7 +217,7 @@ class _HomePageState extends State<HomePage> {
                     () => !isNameEmpty.value && !isPhoneNumberEmpty.value && memberList.isNotEmpty
                         ? GridView.count(
                             crossAxisCount: 2,
-                            physics: BouncingScrollPhysics(),
+                            physics: const BouncingScrollPhysics(),
                             children: [
                               for (final member in memberList)
                                 InkWell(
@@ -288,6 +253,22 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  void filterByName(String value) {
+    memberList.assignAll(
+      memberBox.values.where((member) => member.name.toLowerCase().contains(value.toLowerCase())),
+    );
+    isNameEmpty.value = memberList.isEmpty;
+    memberList.sortedByDescending((member) => member.startDate);
+  }
+
+  void filterByPhoneNumber(String value) {
+    memberList.assignAll(
+      memberBox.values.where((member) => member.name.startsWith(value)),
+    );
+    isPhoneNumberEmpty.value = memberList.isEmpty;
+    memberList.sortedByDescending((member) => member.startDate);
+  }
 }
 
 class MemberCard extends StatelessWidget {
@@ -322,7 +303,7 @@ class MemberCard extends StatelessWidget {
                     image: DecorationImage(
                       image: member.profileImageURL != null
                           ? FileImage(File(member.profileImageURL!))
-                          : AssetImage('assets/icon/placeholder.jpeg'),
+                          : const AssetImage('assets/icon/placeholder.jpeg'),
                       fit: BoxFit.cover,
                     ),
                     border: Border.all(color: Colors.teal.shade400, width: 3),

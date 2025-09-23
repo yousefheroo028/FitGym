@@ -14,7 +14,7 @@ class AboutPage extends StatelessWidget {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           spacing: 8.0,
@@ -27,12 +27,12 @@ class AboutPage extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'appDescribtion'.tr,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             const Divider(),
             Text(
               'developerInfo'.tr,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -61,7 +61,7 @@ class AboutPage extends StatelessWidget {
                   child: ListTile(
                     trailing: const Icon(Icons.phone),
                     title: const Text('01140169448'),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
                     onTap: () => launchUrl(mode: LaunchMode.externalApplication, Uri.parse('tel:01140169448')),
                   ),
                 ),
@@ -69,7 +69,7 @@ class AboutPage extends StatelessWidget {
                   child: ListTile(
                     trailing: const Icon(FontAwesomeIcons.whatsapp),
                     title: const Text('01140169448'),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
                     onTap: () => launchUrl(mode: LaunchMode.externalApplication, Uri.parse('https://wa.me/+201140169448')),
                   ),
                 ),

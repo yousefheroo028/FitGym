@@ -63,6 +63,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
   late DateTime end = DateTime(start.year, start.month, start.day + 29);
 
   Member? member = Get.arguments;
+
   @override
   void initState() {
     if (member != null) {
@@ -88,107 +89,16 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
       ),
       body: Form(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             spacing: 16.0,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: nameController,
-                onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                decoration: InputDecoration(
-                  hintText: 'enterName'.tr,
-                  enabledBorder: InputBorder.none,
-                  fillColor: Colors.grey.withValues(alpha: 0.1),
-                  suffixIcon: Icon(
-                    Icons.text_fields,
-                    color: Colors.grey.withValues(alpha: 0.6),
-                  ),
-                ),
-              ),
-              if (member == null)
-                TextFormField(
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
-                  keyboardType: TextInputType.numberWithOptions(),
-                  controller: phoneNumberController,
-                  onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                  decoration: InputDecoration(
-                    hintText: 'enterPhone'.tr,
-                    enabledBorder: InputBorder.none,
-                    fillColor: Colors.grey.withValues(alpha: 0.1),
-                    suffixIcon: Icon(
-                      Icons.phone,
-                      color: Colors.grey.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-              TextFormField(
-                controller: budgetController,
-                onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                keyboardType: TextInputType.numberWithOptions(),
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  hintText: 'enterBudget'.tr,
-                  enabledBorder: InputBorder.none,
-                  fillColor: Colors.grey.withValues(alpha: 0.1),
-                  suffixIcon: Icon(
-                    Icons.attach_money,
-                    color: Colors.grey.withValues(alpha: 0.6),
-                  ),
-                ),
-              ),
-              TextFormField(
-                onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                readOnly: true,
-                onTap: () async {
-                  await showDatePicker(
-                    context: context,
-                    firstDate: DateTime(DateTime.now().year - 1, DateTime.now().month, DateTime.now().day),
-                    lastDate: DateTime(DateTime.now().year + 1, DateTime.now().month, DateTime.now().day),
-                  ).then(
-                    (value) {
-                      startDateController.text = value != null ? '${value.day} - ${value.month} - ${value.year}' : '';
-                      start = value ?? DateTime.now();
-                      end = DateTime(start.year, start.month, start.day + 29);
-                    },
-                  );
-                },
-                decoration: InputDecoration(
-                  labelText: 'enterStartDate'.tr,
-                  suffixIcon: const Icon(Icons.date_range),
-                  suffixIconColor: Colors.black.withValues(alpha: 0.5),
-                ),
-                controller: startDateController,
-              ),
-              TextFormField(
-                onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                readOnly: true,
-                onTap: () async {
-                  await showDatePicker(
-                    context: context,
-                    firstDate: DateTime(DateTime.now().year - 1, DateTime.now().month, DateTime.now().day),
-                    lastDate: DateTime(DateTime.now().year + 1, DateTime.now().month, DateTime.now().day),
-                  ).then(
-                    (value) {
-                      endDateController.text = value != null ? '${value.day} - ${value.month} - ${value.year}' : '';
-                      end = value ?? DateTime(start.year, start.month, start.day + 29);
-                    },
-                  );
-                },
-                decoration: InputDecoration(
-                  labelText: 'enterEndDate'.tr,
-                  suffixIcon: const Icon(Icons.date_range),
-                  suffixIconColor: Colors.black.withValues(alpha: 0.5),
-                ),
-                controller: endDateController,
-              ),
+              buildTextFiled(nameController, 'enterName'.tr, Icons.text_fields, false),
+              if (member == null) buildTextFiled(phoneNumberController, 'enterPhone'.tr, Icons.phone, true),
+              buildTextFiled(budgetController, 'enterBudget'.tr, Icons.attach_money, true),
+              showDatePickerField(startDateController, 'enterStartDate'.tr),
+              showDatePickerField(endDateController, 'enterEndDate'.tr),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 spacing: 16.0,
@@ -256,7 +166,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                             ),
                           );
                           updateDatabase();
-                          Get.snackbar(
+                          viewSnackBar(
                             'memberEdited'.tr,
                             end.date.difference(DateTime.now().date).inDays >= 0
                                 ? 'daysLeft'.trParams(
@@ -265,11 +175,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                                     },
                                   )
                                 : 'الاشتراك خلصان',
-                            backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                            colorText: Colors.white,
-                            borderRadius: 12,
-                            margin: const EdgeInsets.all(12),
-                            icon: const Icon(Icons.check_circle, color: Colors.white),
+                            true,
                           );
                         },
                         child: Text('editPlayer'.tr),
@@ -279,29 +185,11 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                           if (nameController.text.isEmpty &&
                               phoneNumberController.text.isEmpty &&
                               budgetController.text.isEmpty) {
-                            Get.snackbar(
-                              'completeData'.tr,
-                              'mustFullData'.tr,
-                              backgroundColor: Colors.red.withValues(alpha: 0.5),
-                              colorText: Colors.white,
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                              ),
-                            );
+                            viewSnackBar('completeData'.tr, 'mustFullData'.tr, false);
                             return;
                           }
                           if (memberList.map((member) => member.phoneNumber).contains(phoneNumberController.text)) {
-                            Get.snackbar(
-                              'error'.tr,
-                              'existingOne'.tr,
-                              backgroundColor: Colors.red.withValues(alpha: 0.5),
-                              colorText: Colors.white,
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                              ),
-                            );
+                            viewSnackBar('error'.tr, 'existingOne'.tr, false);
                             return;
                           }
                           await memberBox.put(
@@ -316,7 +204,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                             ),
                           );
                           updateDatabase();
-                          Get.snackbar(
+                          viewSnackBar(
                             'memberAdded'.tr,
                             end.date.difference(DateTime.now().date).inDays >= 0
                                 ? 'daysLeft'.trParams(
@@ -325,11 +213,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                                     },
                                   )
                                 : 'الاشتراك خلصان',
-                            backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                            colorText: Colors.white,
-                            borderRadius: 12,
-                            margin: const EdgeInsets.all(12),
-                            icon: const Icon(Icons.check_circle, color: Colors.white),
+                            true,
                           );
                           nameController.text = '';
                           phoneNumberController.text = '';
@@ -355,4 +239,46 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
     if (count >= 2 && count <= 9) return "${count + 1} أيام";
     return "${count + 1} يومًا";
   }
+
+  Widget buildTextFiled(TextEditingController controller, String hintText, IconData suffixIcon, bool isOnlyNumbers) =>
+      TextFormField(
+        controller: controller,
+        onTapOutside: (event) => FocusScope.of(context).unfocus(),
+        inputFormatters: isOnlyNumbers
+            ? [
+                FilteringTextInputFormatter.digitsOnly,
+              ]
+            : null,
+        keyboardType: isOnlyNumbers ? const TextInputType.numberWithOptions() : null,
+        decoration: InputDecoration(
+          hintText: hintText,
+          fillColor: Colors.grey.withValues(alpha: 0.1),
+          suffixIcon: Icon(suffixIcon, color: Colors.grey.withValues(alpha: 0.6)),
+          border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16.0))),
+        ),
+      );
+
+  Widget showDatePickerField(TextEditingController controller, String labelText) => TextFormField(
+        onTapOutside: (event) => FocusScope.of(context).unfocus(),
+        readOnly: true,
+        onTap: () async {
+          await showDatePicker(
+            context: context,
+            firstDate: DateTime(DateTime.now().year - 1, DateTime.now().month, DateTime.now().day),
+            lastDate: DateTime(DateTime.now().year + 1, DateTime.now().month, DateTime.now().day),
+          ).then(
+            (value) {
+              startDateController.text = value != null ? '${value.day} - ${value.month} - ${value.year}' : '';
+              start = value ?? DateTime.now();
+              end = DateTime(start.year, start.month, start.day + 29);
+            },
+          );
+        },
+        decoration: InputDecoration(
+          labelText: 'enterStartDate'.tr,
+          suffixIcon: const Icon(Icons.date_range),
+          suffixIconColor: Colors.black.withValues(alpha: 0.5),
+        ),
+        controller: controller,
+      );
 }
