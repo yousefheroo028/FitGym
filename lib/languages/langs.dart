@@ -57,7 +57,15 @@ class Languages extends Translations {
           'memberEdited': 'تم تحديث بيانات اللاعب',
           'export': 'ابعت',
           'errorFile': 'في مشكلة',
-          "nameOfMember": "اكتب اسم اللاعب"
+          'numberOfMembers': 'عدد المشتركين: @number',
+          'backup': 'تنزيل نسخة احتياطية',
+          'fileDownloaded': 'تم تنزيل النسخة الاحتياطية',
+          'newFilePath': 'النسخة الاحتياطية موجودة في التنزيلات',
+          'boxIsEmpty': 'مافيش داتا تتخزن',
+          'bosIsNotSaved': 'لم يتم تخزين الداتا',
+          'permissionIsNotGranted': 'لم يتم إعطاء أذن الوصول للتخزين',
+          "nameOfMember": "اكتب اسم اللاعب",
+          "imageOf": "صورة @name"
         },
       };
 }

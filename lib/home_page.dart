@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:file_saver/file_saver.dart';
 
 import 'about_page.dart';
 import 'add_player_page.dart';
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage> {
   final isPhoneNumberEmpty = false.obs;
 
   final isDark = Get.isDarkMode.obs;
+
   @override
   Widget build(BuildContext context) {
     final filteredY = false.obs;
@@ -52,7 +54,7 @@ class _HomePageState extends State<HomePage> {
               actions: [
                 TextButton(
                   onPressed: () async {
-                    FilePickerResult? importFile = await FilePicker.platform.pickFiles();
+                    final importFile = await FilePicker.platform.pickFiles();
 
                     if (importFile != null) {
                       if (!importFile.files.single.path!.endsWith('.hive')) return;
@@ -60,62 +62,35 @@ class _HomePageState extends State<HomePage> {
                       if (await file.exists()) {
                         await Hive.close();
                         final dir = await getApplicationDocumentsDirectory();
-                        final hiveFile = File('${dir.path}/members.hive');
-                        await file.copy(hiveFile.path);
+                        final hiveFile = File('${dir.path}/$boxName.hive');
+                        final filee = await file.copy(hiveFile.path);
+                        print(filee);
+                        // await migrateMembers();
+                        memberBox = await Hive.openBox<Member>(boxName);
+                        updateDatabase();
                         Get.snackbar(
                           'operationSucceeded'.tr,
                           'fileIsSelected'.tr,
                           backgroundColor: Colors.blue.withValues(alpha: 0.5),
                           colorText: Colors.white,
-                          icon: const Icon(
-                            Icons.check_circle,
-                            color: Colors.white,
-                          ),
+                          icon: const Icon(Icons.check_circle, color: Colors.white),
                         );
-                        memberBox = await Hive.openBox('members');
-                        updateDatabase();
+                        setState(() {});
                       }
-                    } else {
-                      Get.snackbar(
-                        'operationStoped'.tr,
-                        'fileIsNotSelected'.tr,
-                        backgroundColor: Colors.red.withValues(alpha: 0.5),
-                        colorText: Colors.white,
-                        icon: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                        ),
-                      );
                     }
                   },
-                  child: Text(
-                    'import'.tr,
-                    style: const TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
+                  child: Text('import'.tr, style: const TextStyle(fontSize: 16)),
                 ),
                 TextButton(
                   onPressed: () async {
                     final dir = await getApplicationDocumentsDirectory();
-                    final hiveFile = File('${dir.path}/members.hive');
+                    final hiveFile = File('${dir.path}/$boxName.hive');
 
                     if (await hiveFile.exists()) {
-                      SharePlus.instance.share(
-                        ShareParams(
-                          files: [
-                            XFile('${dir.path}/members.hive'),
-                          ],
-                        ),
-                      );
+                      SharePlus.instance.share(ShareParams(files: [XFile('${dir.path}/$boxName.hive')]));
                     }
                   },
-                  child: Text(
-                    'export'.tr,
-                    style: const TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
+                  child: Text('export'.tr, style: const TextStyle(fontSize: 16)),
                 ),
               ],
               leading: Obx(
@@ -149,7 +124,6 @@ class _HomePageState extends State<HomePage> {
                         decoration: InputDecoration(
                           hintText: 'nameOfMember'.tr,
                           suffixIcon: const Icon(Icons.search),
-                          suffixIconColor: Colors.black.withValues(alpha: 0.6),
                         ),
                         onTapOutside: (event) => FocusScope.of(context).unfocus(),
                         onChanged: (value) {
@@ -166,7 +140,6 @@ class _HomePageState extends State<HomePage> {
                         decoration: InputDecoration(
                           hintText: 'phoneNumberOfMember'.tr,
                           suffixIcon: const Icon(Icons.search),
-                          suffixIconColor: Colors.black.withValues(alpha: 0.6),
                         ),
                         keyboardType: TextInputType.number,
                         inputFormatters: [
@@ -188,7 +161,7 @@ class _HomePageState extends State<HomePage> {
                             Expanded(
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.amber.shade600.withValues(alpha: filteredY.value ? 0.5 : 1),
+                                  backgroundColor: Colors.amber.shade600.withValues(alpha: filteredY.value ? 0.2 : 1),
                                   foregroundColor: Colors.black,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
@@ -197,11 +170,12 @@ class _HomePageState extends State<HomePage> {
                                   elevation: 0,
                                 ),
                                 onPressed: () {
+                                  print(Hive);
                                   memberList.assignAll(
                                     filteredY.value
                                         ? memberBox.values
                                         : memberBox.values.where(
-                                            (member) => member.getRemainingTime() >= 0 && member.getRemainingTime() <= 3,
+                                            (member) => member.getRemainingTime() >= 0 && member.getRemainingTime() < 3,
                                           ),
                                   );
                                   filteredY.value = !filteredY.value;
@@ -216,7 +190,7 @@ class _HomePageState extends State<HomePage> {
                             Expanded(
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red.shade700.withValues(alpha: filteredR.value ? 0.5 : 1),
+                                  backgroundColor: Colors.red.shade700.withValues(alpha: filteredR.value ? 0.2 : 1),
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
@@ -243,6 +217,50 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ],
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Obx(() => Text('numberOfMembers'.trParams({"number": memberList.length.toString()}))),
+                      TextButton(
+                        style: const ButtonStyle(padding: WidgetStatePropertyAll(EdgeInsets.all(0.0))),
+                        onPressed: () async {
+                          if (memberBox.values.isEmpty) {
+                            Get.snackbar(
+                              'bosIsNotSaved'.tr,
+                              'boxIsEmpty'.tr,
+                              backgroundColor: Colors.red.withValues(alpha: 0.5),
+                              colorText: Colors.white,
+                              icon: const Icon(Icons.close, color: Colors.white),
+                            );
+                            return;
+                          }
+                          final appDir = await getApplicationDocumentsDirectory();
+                          final hiveFile = File('${appDir.path}/$boxName.hive');
+                          if (await hiveFile.exists()) {
+                            final bytes = await hiveFile.readAsBytes();
+
+                            await FileSaver.instance.saveFile(
+                              name: boxName,
+                              bytes: bytes,
+                              fileExtension: "hive",
+                              mimeType: MimeType.other,
+                            );
+                            Get.snackbar(
+                              'fileDownloaded'.tr,
+                              'newFilePath'.tr,
+                              backgroundColor: Colors.blue.withValues(alpha: 0.5),
+                              colorText: Colors.white,
+                              icon: const Icon(Icons.check_circle, color: Colors.white),
+                            );
+                          }
+                        },
+                        child: Text('backup'.tr),
                       ),
                     ],
                   ),
@@ -320,9 +338,9 @@ class MemberCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: member.profileImageURL != null
-                          ? FileImage(File(member.profileImageURL!))
-                          : AssetImage('assets/icon/placeholder.jpeg'),
+                      image: member.profileImageMetadata != null
+                          ? MemoryImage(member.profileImageMetadata!)
+                          : const AssetImage('assets/icon/placeholder.jpeg'),
                       fit: BoxFit.cover,
                     ),
                     border: Border.all(color: Colors.teal.shade400, width: 3),

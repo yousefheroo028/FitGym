@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:fit_gym/languages/langs.dart';
-import 'package:fit_gym/member.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart' hide Intent;
@@ -12,6 +11,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'home_page.dart';
+import 'member.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,11 +30,11 @@ Future<void> main() async {
 late final String deviceId;
 late Box<Member> memberBox;
 
-const boxName = 'members';
+const boxName = 'members_new';
 Future<void> initHive() async {
   await Hive.initFlutter();
   Hive.registerAdapter(MemberAdapter());
-  memberBox = await Hive.openBox<Member>(boxName);
+  memberBox = await Hive.openBox(boxName);
 }
 
 final memberList = memberBox.values.sortedByDescending((element) => element.startDate).toList().obs;

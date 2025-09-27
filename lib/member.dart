@@ -1,5 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:hive/hive.dart';
+import 'dart:typed_data';
 
 part 'member.g.dart';
 
@@ -14,7 +15,7 @@ class Member extends HiveObject {
   @HiveField(3)
   double subscriptionBudget;
   @HiveField(4)
-  String? profileImageURL;
+  Uint8List? profileImageMetadata;
   @HiveField(5)
   String phoneNumber;
 
@@ -23,7 +24,7 @@ class Member extends HiveObject {
     required this.startDate,
     required this.endDate,
     required this.subscriptionBudget,
-    this.profileImageURL,
+    this.profileImageMetadata,
     required this.phoneNumber,
   });
 

@@ -1,13 +1,12 @@
-import 'dart:io';
-
 import 'package:fit_gym/home_page.dart';
-import 'package:fit_gym/member.dart';
+import 'package:fit_gym/image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import 'add_player_page.dart';
 import 'main.dart';
+import 'member.dart';
 
 class MemberDetails extends StatefulWidget {
   const MemberDetails({super.key});
@@ -47,19 +46,22 @@ class _MemberDetailsState extends State<MemberDetails> {
               spacing: 8.0,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Hero(
-                  tag: member.phoneNumber,
-                  child: Container(
-                    height: 220,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: member.profileImageURL != null
-                            ? FileImage(File(member.profileImageURL!))
-                            : const AssetImage('assets/icon/placeholder.jpeg'),
-                        fit: BoxFit.contain,
+                InkWell(
+                  onTap: () => Get.to(() => ImageViewer(), arguments: member),
+                  child: Hero(
+                    tag: member.phoneNumber,
+                    child: Container(
+                      height: 220,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: member.profileImageMetadata != null
+                              ? MemoryImage(member.profileImageMetadata!)
+                              : const AssetImage('assets/icon/placeholder.jpeg'),
+                          fit: BoxFit.contain,
+                        ),
+                        border: Border.all(color: Colors.teal.shade400, width: 1),
                       ),
-                      border: Border.all(color: Colors.teal.shade400, width: 1),
                     ),
                   ),
                 ),
@@ -168,8 +170,8 @@ class _MemberDetailsState extends State<MemberDetails> {
                 SizedBox(
                   width: context.width,
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      member.delete();
+                    onPressed: () async {
+                      await member.delete();
                       updateDatabase();
                       Get.offAll(() => const HomePage());
                     },

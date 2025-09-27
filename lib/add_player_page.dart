@@ -1,12 +1,16 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dartx/dartx.dart';
 import 'package:fit_gym/main.dart';
-import 'package:fit_gym/member.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
+import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+
+import 'member.dart';
 
 class AddPlayerPage extends StatefulWidget {
   const AddPlayerPage({super.key});
@@ -36,27 +40,30 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
     super.dispose();
   }
 
-  File? _imageFile;
-  final _picker = ImagePicker();
+  Uint8List? _imageMetadata;
 
   Future<void> _pickImageFromCamera() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera, maxHeight: 720, maxWidth: 720);
-
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera, maxHeight: 480, maxWidth: 480);
     if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+      File imageFile = File(pickedFile.path);
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName = imageFile.path.split('/').last;
+      final savedImage = await imageFile.copy('${appDir.path}/$fileName');
+      await GallerySaver.saveImage(savedImage.path);
+      _imageMetadata = await pickedFile.readAsBytes();
     }
+    setState(() {});
   }
 
   Future<void> _pickImageFromGallery() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery, maxHeight: 720, maxWidth: 720);
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, maxHeight: 480, maxWidth: 480);
 
     if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+      _imageMetadata = await pickedFile.readAsBytes();
     }
+    setState(() {});
   }
 
   DateTime start = DateTime.now();
@@ -66,7 +73,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
   @override
   void initState() {
     if (member != null) {
-      if (member?.profileImageURL != null) _imageFile = File(member!.profileImageURL!);
+      if (member!.profileImageMetadata != null) _imageMetadata = member!.profileImageMetadata!;
       nameController.text = member!.name;
       phoneNumberController.text = member!.phoneNumber;
       budgetController.text = member!.subscriptionBudget.toInt().toString();
@@ -98,7 +105,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 onTapOutside: (event) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
                   hintText: 'enterName'.tr,
-                  enabledBorder: InputBorder.none,
                   fillColor: Colors.grey.withValues(alpha: 0.1),
                   suffixIcon: Icon(
                     Icons.text_fields,
@@ -116,7 +122,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   onTapOutside: (event) => FocusScope.of(context).unfocus(),
                   decoration: InputDecoration(
                     hintText: 'enterPhone'.tr,
-                    enabledBorder: InputBorder.none,
                     fillColor: Colors.grey.withValues(alpha: 0.1),
                     suffixIcon: Icon(
                       Icons.phone,
@@ -136,7 +141,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   hintText: 'enterBudget'.tr,
-                  enabledBorder: InputBorder.none,
                   fillColor: Colors.grey.withValues(alpha: 0.1),
                   suffixIcon: Icon(
                     Icons.attach_money,
@@ -163,7 +167,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 decoration: InputDecoration(
                   labelText: 'enterStartDate'.tr,
                   suffixIcon: const Icon(Icons.date_range),
-                  suffixIconColor: Colors.black.withValues(alpha: 0.5),
                 ),
                 controller: startDateController,
               ),
@@ -185,7 +188,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 decoration: InputDecoration(
                   labelText: 'enterEndDate'.tr,
                   suffixIcon: const Icon(Icons.date_range),
-                  suffixIconColor: Colors.black.withValues(alpha: 0.5),
                 ),
                 controller: endDateController,
               ),
@@ -213,16 +215,13 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   ),
                 ],
               ),
-              if (_imageFile != null)
+              if (_imageMetadata != null)
                 Column(
                   children: [
-                    Image.file(
-                      _imageFile!,
-                      height: 200,
-                    ),
+                    Image.memory(_imageMetadata!, height: 200),
                     IconButton(
                       onPressed: () {
-                        _imageFile = null;
+                        _imageMetadata = null;
                         setState(() {});
                       },
                       icon: const Icon(Icons.close),
@@ -241,7 +240,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                               startDate: start,
                               endDate: end,
                               subscriptionBudget: budgetController.text.toDouble(),
-                              profileImageURL: _imageFile?.path,
+                              profileImageMetadata: _imageMetadata,
                               phoneNumber: member!.phoneNumber,
                             ),
                           );
@@ -251,7 +250,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                               startDate: start,
                               endDate: end,
                               subscriptionBudget: budgetController.text.toDouble(),
-                              profileImageURL: _imageFile?.path,
+                              profileImageMetadata: _imageMetadata,
                               phoneNumber: member!.phoneNumber,
                             ),
                           );
@@ -311,7 +310,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                               startDate: start,
                               endDate: end,
                               subscriptionBudget: budgetController.text.toDouble(),
-                              profileImageURL: _imageFile?.path,
+                              profileImageMetadata: _imageMetadata,
                               phoneNumber: phoneNumberController.text,
                             ),
                           );
@@ -336,7 +335,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                           budgetController.text = '';
                           startDateController.text = '';
                           endDateController.text = '';
-                          _imageFile = null;
+                          _imageMetadata = null;
                           setState(() {});
                         },
                         child: Text('addNewPlayer'.tr),
