@@ -67,18 +67,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      home: const HomePage(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.teal.shade400,
           brightness: Brightness.light,
         ),
         textTheme: GoogleFonts.cairoTextTheme(ThemeData.light().textTheme),
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           elevation: 0,
-          titleTextStyle: const TextStyle(
+          titleTextStyle: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.black,
@@ -320,4 +320,16 @@ class NotAllowedPage extends StatelessWidget {
       ),
     );
   }
+}
+
+void viewSnackBar(String title, String message, bool isSuccess) {
+  Get.snackbar(
+    title,
+    message,
+    backgroundColor: isSuccess ? Colors.blue.withValues(alpha: 0.5) : Colors.red.withValues(alpha: 0.5),
+    colorText: Colors.white,
+    borderRadius: 12,
+    margin: const EdgeInsets.all(12),
+    icon: Icon(isSuccess ? Icons.check_circle : Icons.close, color: Colors.white),
+  );
 }

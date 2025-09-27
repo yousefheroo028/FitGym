@@ -30,7 +30,7 @@ class _MemberDetailsState extends State<MemberDetails> {
         actions: [
           IconButton(
             onPressed: () async {
-              member = await Get.to(AddPlayerPage(), arguments: member);
+              member = await Get.to(const AddPlayerPage(), arguments: member);
               setState(() {});
             },
             icon: const Icon(Icons.edit),
@@ -84,25 +84,7 @@ class _MemberDetailsState extends State<MemberDetails> {
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 InkWell(
-                  onLongPress: () => Clipboard.setData(ClipboardData(text: member.phoneNumber)).then(
-                    (value) => Get.snackbar(
-                      'copied'.trParams(
-                        {
-                          "name": member.name,
-                        },
-                      ),
-                      'numberCopied'.trParams(
-                        {
-                          "name": member.phoneNumber,
-                        },
-                      ),
-                      backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                      colorText: Colors.white,
-                      borderRadius: 12,
-                      margin: const EdgeInsets.all(12),
-                      icon: const Icon(Icons.check_circle, color: Colors.white),
-                    ),
-                  ),
+                  onLongPress: copyPhoneNumber,
                   child: Text(
                     'phoneNumberOfPlayer'.trParams(
                       {
@@ -193,4 +175,20 @@ class _MemberDetailsState extends State<MemberDetails> {
     if (count >= 2 && count <= 9) return "${count + 1} أيام";
     return "${count + 1} يومًا";
   }
+
+  void copyPhoneNumber() => Clipboard.setData(ClipboardData(text: member.phoneNumber)).then(
+        (value) => viewSnackBar(
+          'copied'.trParams(
+            {
+              "name": member.name,
+            },
+          ),
+          'numberCopied'.trParams(
+            {
+              "name": member.phoneNumber,
+            },
+          ),
+          true,
+        ),
+      );
 }
