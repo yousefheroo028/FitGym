@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:fit_gym/languages/langs.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart' hide Intent;
 import 'package:get/get.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -37,11 +37,10 @@ Future<void> initHive() async {
   memberBox = await Hive.openBox(boxName);
 }
 
-final memberList = memberBox.values.sortedByDescending((element) => element.startDate).toList().obs;
+final memberList = memberBox.values.sortedByDescending((member) => member.startDate).toList().obs;
 
 void updateDatabase() {
-  memberList.assignAll(memberBox.values);
-  memberList.sortedByDescending((member) => member.startDate);
+  memberList.assignAll(memberBox.values.sortedByDescending((member) => member.startDate).toList());
 }
 
 Future<bool> checkIfAllowed() async {
@@ -55,6 +54,7 @@ Future<bool> checkIfAllowed() async {
     'AE3A.240806.036',
     'TP1A.220624.014',
     'HONORBRC-N21',
+    'AP3A.240905.015.A2_VOOOL1',
   ];
 
   return allowedDevices.contains(deviceId);
@@ -73,7 +73,8 @@ class MyApp extends StatelessWidget {
           seedColor: Colors.teal.shade400,
           brightness: Brightness.light,
         ),
-        textTheme: GoogleFonts.cairoTextTheme(ThemeData.light().textTheme),
+        fontFamily: 'Tajawal',
+        fontFamilyFallback: const ['Tajawal'],
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
@@ -82,6 +83,7 @@ class MyApp extends StatelessWidget {
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.black,
+            fontFamily: 'Tajawal',
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
@@ -92,7 +94,11 @@ class MyApp extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Tajawal',
+            ),
           ),
         ),
         cardTheme: CardThemeData(
@@ -144,7 +150,8 @@ class MyApp extends StatelessWidget {
           seedColor: Colors.teal.shade300,
           brightness: Brightness.dark,
         ),
-        textTheme: GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme),
+        fontFamilyFallback: const ['Tajawal'],
+        fontFamily: 'Tajawal',
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.grey.shade900,
           foregroundColor: Colors.white,
@@ -153,6 +160,7 @@ class MyApp extends StatelessWidget {
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.white,
+            fontFamily: 'Tajawal',
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
@@ -163,14 +171,18 @@ class MyApp extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Tajawal',
+            ),
           ),
         ),
         cardTheme: CardThemeData(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 0, // layer subtle
+          elevation: 0,
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -227,7 +239,15 @@ class NotAllowedPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: Text(deviceId),
+        title: InkWell(
+            onTap: () => Clipboard.setData(ClipboardData(text: deviceId)).then(
+                  (value) => viewSnackBar(
+                    'سيتم إضافتك في السيستم بعد قليل',
+                    'استنى شوية',
+                    true,
+                  ),
+                ),
+            child: Text(deviceId)),
       ),
       body: Center(
         child: Padding(

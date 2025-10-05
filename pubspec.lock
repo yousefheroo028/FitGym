@@ -289,22 +289,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.3"
-  dio:
+  diacritic:
     dependency: transitive
     description:
-      name: dio
-      sha256: d90ee57923d1828ac14e492ca49440f65477f4bb1263575900be731a3dac66a9
+      name: diacritic
+      sha256: "12981945ec38931748836cd76f2b38773118d0baef3c68404bdfde9566147876"
       url: "https://pub.dev"
     source: hosted
-    version: "5.9.0"
-  dio_web_adapter:
-    dependency: transitive
+    version: "0.1.6"
+  downloadsfolder:
+    dependency: "direct main"
     description:
-      name: dio_web_adapter
-      sha256: "7586e476d70caecaf1686d21eee7247ea43ef5c345eab9e0cc3583ff13378d78"
+      name: downloadsfolder
+      sha256: "0e1bb7dd634d6231c0ac116c467da94507a07ed62239712ea0dead981d58b114"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "1.2.0"
   fake_async:
     dependency: transitive
     description:
@@ -333,18 +333,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: e7e16c9d15c36330b94ca0e2ad8cb61f93cd5282d0158c09805aed13b5452f22
+      sha256: f2d9f173c2c14635cc0e9b14c143c49ef30b4934e8d1d274d6206fcb0086a06f
       url: "https://pub.dev"
     source: hosted
-    version: "10.3.2"
-  file_saver:
-    dependency: "direct main"
-    description:
-      name: file_saver
-      sha256: "9d93db09bd4da9e43238f9dd485360fc51a5c138eea5ef5f407ec56e58079ac0"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.1"
+    version: "10.3.3"
   file_selector_linux:
     dependency: transitive
     description:
@@ -479,14 +471,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.3"
-  google_fonts:
-    dependency: "direct main"
-    description:
-      name: google_fonts
-      sha256: ebc94ed30fd13cefd397cb1658b593f21571f014b7d1197eeb41fb95f05d899a
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.3.1"
   graphs:
     dependency: transitive
     description:
@@ -839,38 +823,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
-  share_handler:
-    dependency: "direct main"
-    description:
-      name: share_handler
-      sha256: "0a6d007f0e44fbee27164adcd159ecbc88238864313f4e5c58161cae2180328d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.25"
-  share_handler_android:
-    dependency: transitive
-    description:
-      name: share_handler_android
-      sha256: caf555b933dc72783aa37fef75688c7b86bd6f7bc17d80fbf585bc42f123cc8d
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.11"
-  share_handler_ios:
-    dependency: transitive
-    description:
-      name: share_handler_ios
-      sha256: cdc21f88f336a944157a8e9ceb191525cee3b082d6eb6c2082488e4f09dc3ece
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.15"
-  share_handler_platform_interface:
-    dependency: transitive
-    description:
-      name: share_handler_platform_interface
-      sha256: "7a4df95a87b326b2f07458d937f2281874567c364b7b7ebe4e7d50efaae5f106"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.6"
   share_plus:
     dependency: "direct main"
     description:

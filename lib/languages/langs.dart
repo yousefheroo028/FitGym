@@ -65,6 +65,11 @@ class Languages extends Translations {
           'bosIsNotSaved': 'لم يتم تخزين الداتا',
           'permissionIsNotGranted': 'لم يتم إعطاء أذن الوصول للتخزين',
           "nameOfMember": "اكتب اسم اللاعب",
+          "errorInPhoneNumber": "في مشكلة في رقم الموبايل",
+          "phoneNumberType": "رقم الموبايل لازم يبدأ ب 011 أو 012 أو 015 أو 010",
+          "phoneNumberLength": "رقم الموبايل لازم يكون 11 رقم",
+          "fileIsNotTrue": "الفايل اللي اختارته مش صحيح",
+          "endsWithHive": "لازم اسم الفايل يتنهي ب hive.",
           "imageOf": "صورة @name"
         },
       };

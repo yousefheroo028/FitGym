@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dartx/dartx.dart';
+import 'package:downloadsfolder/downloadsfolder.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:fit_gym/main.dart';
 import 'package:fit_gym/member_details.dart';
@@ -10,7 +11,6 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:file_saver/file_saver.dart';
 
 import 'about_page.dart';
 import 'add_player_page.dart';
@@ -24,7 +24,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  var _pageIndex = 0;
+  var pageIndex = 0;
   final memberSearchByNameController = TextEditingController();
   final memberSearchByPhoneNumberController = TextEditingController();
 
@@ -40,14 +40,18 @@ class _HomePageState extends State<HomePage> {
 
   final isDark = Get.isDarkMode.obs;
 
+  final filteredName = memberBox.values.toSet().obs;
+  final filteredPhoneNumber = memberBox.values.toSet().obs;
+  final filteredYMembers = memberBox.values.toSet().obs;
+  final filteredRMembers = memberBox.values.toSet().obs;
+
+  final filteredY = false.obs;
+  final filteredR = false.obs;
   @override
   Widget build(BuildContext context) {
-    final filteredY = false.obs;
-    final filteredR = false.obs;
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: _pageIndex == 0
+      appBar: pageIndex == 0
           ? AppBar(
               title: const Text('FIT GYM'),
               centerTitle: true,
@@ -57,17 +61,33 @@ class _HomePageState extends State<HomePage> {
                     final importFile = await FilePicker.platform.pickFiles();
 
                     if (importFile != null) {
-                      if (!importFile.files.single.path!.endsWith('.hive')) return;
+                      // if (!importFile.files.single.path!.split('/').last.startsWith(boxName)) {
+                      //   Get.snackbar(
+                      //     'fileIsNotTrue'.tr,
+                      //     'endsWithHive'.tr,
+                      //     backgroundColor: Colors.red.withValues(alpha: 0.5),
+                      //     colorText: Colors.white,
+                      //     icon: const Icon(Icons.close, color: Colors.white),
+                      //   );
+                      //   return;
+                      // }
                       File file = File(importFile.files.single.path!);
                       if (await file.exists()) {
-                        await Hive.close();
+                        await memberBox.close();
                         final dir = await getApplicationDocumentsDirectory();
                         final hiveFile = File('${dir.path}/$boxName.hive');
-                        final filee = await file.copy(hiveFile.path);
-                        print(filee);
-                        // await migrateMembers();
+                        await file.copy(hiveFile.path);
                         memberBox = await Hive.openBox<Member>(boxName);
-                        updateDatabase();
+                        filteredName.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate).toSet().obs);
+                        filteredPhoneNumber
+                            .assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate).toSet().obs);
+                        filteredYMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate).toSet().obs);
+                        filteredRMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate).toSet().obs);
+                        memberList.assignAll(memberBox.values.toList());
+                        filteredY.value = false;
+                        filteredR.value = false;
+                        memberSearchByNameController.text = '';
+                        memberSearchByPhoneNumberController.text = '';
                         Get.snackbar(
                           'operationSucceeded'.tr,
                           'fileIsSelected'.tr,
@@ -75,7 +95,6 @@ class _HomePageState extends State<HomePage> {
                           colorText: Colors.white,
                           icon: const Icon(Icons.check_circle, color: Colors.white),
                         );
-                        setState(() {});
                       }
                     }
                   },
@@ -93,22 +112,20 @@ class _HomePageState extends State<HomePage> {
                   child: Text('export'.tr, style: const TextStyle(fontSize: 16)),
                 ),
               ],
-              leading: Obx(
-                () => IconButton(
-                  onPressed: () {
-                    Get.changeThemeMode(isDark.value ? ThemeMode.light : ThemeMode.dark);
-                    isDark.value = !isDark.value;
-                  },
-                  icon: Icon(isDark.value ? Icons.light_mode : Icons.dark_mode),
-                ),
+              leading: IconButton(
+                onPressed: () {
+                  Get.changeThemeMode(isDark.value ? ThemeMode.light : ThemeMode.dark);
+                  isDark.value = !isDark.value;
+                },
+                icon: Obx(() => isDark.value ? const Icon(Icons.light_mode) : const Icon(Icons.dark_mode)),
               ),
             )
           : null,
       body: IndexedStack(
-        index: _pageIndex,
+        index: pageIndex,
         children: [
           SizedBox(
-            width: context.width,
+            width: Get.width,
             child: Column(
               spacing: 8.0,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -120,18 +137,23 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       TextField(
                         controller: memberSearchByNameController,
-                        autocorrect: true,
                         decoration: InputDecoration(
                           hintText: 'nameOfMember'.tr,
                           suffixIcon: const Icon(Icons.search),
                         ),
                         onTapOutside: (event) => FocusScope.of(context).unfocus(),
                         onChanged: (value) {
+                          filteredName.assignAll(memberBox.values
+                              .sortedByDescending((memebr) => memebr.startDate)
+                              .where((member) => member.name
+                                  .startsWith(value.trim().split(' ').where((element) => element.isNotEmpty).join(' ')))
+                              .toList());
                           memberList.assignAll(
-                            memberBox.values.where((member) => member.name.toLowerCase().contains(value.toLowerCase())),
+                            filteredName
+                                .intersection(filteredPhoneNumber)
+                                .intersection(filteredRMembers)
+                                .intersection(filteredYMembers),
                           );
-                          isNameEmpty.value = memberList.isEmpty;
-                          memberList.sortedByDescending((member) => member.startDate);
                         },
                       ),
                       TextField(
@@ -147,11 +169,14 @@ class _HomePageState extends State<HomePage> {
                         ],
                         onTapOutside: (event) => FocusScope.of(context).unfocus(),
                         onChanged: (value) {
-                          memberList.assignAll(
-                            memberBox.values.where((member) => member.phoneNumber.startsWith(value)),
-                          );
-                          isPhoneNumberEmpty.value = memberList.isEmpty;
-                          memberList.sortedByDescending((member) => member.startDate);
+                          filteredPhoneNumber.assignAll(memberBox.values
+                              .sortedByDescending((memebr) => memebr.startDate)
+                              .where((member) => member.phoneNumber.startsWith(value))
+                              .toList());
+                          memberList.assignAll(filteredName
+                              .intersection(filteredPhoneNumber)
+                              .intersection(filteredRMembers)
+                              .intersection(filteredYMembers));
                         },
                       ),
                       Obx(
@@ -170,21 +195,22 @@ class _HomePageState extends State<HomePage> {
                                   elevation: 0,
                                 ),
                                 onPressed: () {
-                                  print(Hive);
-                                  memberList.assignAll(
+                                  filteredR.value = false;
+                                  filteredRMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate));
+                                  filteredYMembers.assignAll(
                                     filteredY.value
-                                        ? memberBox.values
-                                        : memberBox.values.where(
-                                            (member) => member.getRemainingTime() >= 0 && member.getRemainingTime() < 3,
-                                          ),
+                                        ? memberBox.values.sortedByDescending((memebr) => memebr.startDate)
+                                        : memberBox.values.sortedByDescending((memebr) => memebr.startDate).where(
+                                              (member) => member.getRemainingTime() >= 0 && member.getRemainingTime() < 3,
+                                            ),
                                   );
                                   filteredY.value = !filteredY.value;
-                                  filteredR.value = false;
+                                  memberList.assignAll(filteredName
+                                      .intersection(filteredPhoneNumber)
+                                      .intersection(filteredRMembers)
+                                      .intersection(filteredYMembers));
                                 },
-                                child: Text(
-                                  'soon'.tr,
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
+                                child: Text('soon'.tr),
                               ),
                             ),
                             Expanded(
@@ -199,20 +225,22 @@ class _HomePageState extends State<HomePage> {
                                   elevation: 0,
                                 ),
                                 onPressed: () {
-                                  memberList.assignAll(
+                                  filteredY.value = false;
+                                  filteredYMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate));
+                                  filteredRMembers.assignAll(
                                     filteredR.value
-                                        ? memberBox.values
-                                        : memberBox.values.where(
-                                            (member) => member.getRemainingTime() < 0,
-                                          ),
+                                        ? memberBox.values.sortedByDescending((memebr) => memebr.startDate)
+                                        : memberBox.values
+                                            .sortedByDescending((memebr) => memebr.startDate)
+                                            .where((member) => member.getRemainingTime() < 0),
                                   );
                                   filteredR.value = !filteredR.value;
-                                  filteredY.value = false;
+                                  memberList.assignAll(filteredName
+                                      .intersection(filteredPhoneNumber)
+                                      .intersection(filteredRMembers)
+                                      .intersection(filteredYMembers));
                                 },
-                                child: Text(
-                                  'expired'.tr,
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                ),
+                                child: Text('expired'.tr),
                               ),
                             ),
                           ],
@@ -240,24 +268,23 @@ class _HomePageState extends State<HomePage> {
                             );
                             return;
                           }
-                          final appDir = await getApplicationDocumentsDirectory();
-                          final hiveFile = File('${appDir.path}/$boxName.hive');
+                          final dir = await getApplicationDocumentsDirectory();
+                          final hiveFile = File('${dir.path}/$boxName.hive');
                           if (await hiveFile.exists()) {
-                            final bytes = await hiveFile.readAsBytes();
-
-                            await FileSaver.instance.saveFile(
-                              name: boxName,
-                              bytes: bytes,
-                              fileExtension: "hive",
-                              mimeType: MimeType.other,
-                            );
-                            Get.snackbar(
-                              'fileDownloaded'.tr,
-                              'newFilePath'.tr,
-                              backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                              colorText: Colors.white,
-                              icon: const Icon(Icons.check_circle, color: Colors.white),
-                            );
+                            try {
+                              bool? success = await copyFileIntoDownloadFolder(hiveFile.path, '$boxName.hive');
+                              if (success == true) {
+                                Get.snackbar(
+                                  'fileDownloaded'.tr,
+                                  'newFilePath'.tr,
+                                  backgroundColor: Colors.blue.withValues(alpha: 0.5),
+                                  colorText: Colors.white,
+                                  icon: const Icon(Icons.check_circle, color: Colors.white),
+                                );
+                              }
+                            } catch (e) {
+                              print('Failed to retrieve downloads folder path $e');
+                            }
                           }
                         },
                         child: Text('backup'.tr),
@@ -267,22 +294,21 @@ class _HomePageState extends State<HomePage> {
                 ),
                 Expanded(
                   child: Obx(
-                    () => !isNameEmpty.value && !isPhoneNumberEmpty.value && memberList.isNotEmpty
-                        ? GridView.count(
-                            crossAxisCount: 2,
-                            physics: BouncingScrollPhysics(),
-                            children: [
-                              for (final member in memberList)
-                                InkWell(
-                                  onTap: () {
-                                    Get.to(() => const MemberDetails(), arguments: member);
-                                  },
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: MemberCard(member: member),
-                                ),
-                            ],
-                          )
-                        : Text('noMatchedPlayer'.tr),
+                    () {
+                      final members = memberList.sortedByDescending((member) => member.startDate);
+                      return memberList.isNotEmpty
+                          ? GridView.builder(
+                              cacheExtent: Get.width * 2,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+                              itemCount: members.length,
+                              itemBuilder: (_, i) => InkWell(
+                                onTap: () => Get.to(() => const MemberDetails(), arguments: members[i]),
+                                borderRadius: BorderRadius.circular(12),
+                                child: MemberCard(member: members[i]),
+                              ),
+                            )
+                          : Text('noMatchedPlayer'.tr);
+                    },
                   ),
                 ),
               ],
@@ -294,10 +320,10 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         onTap: (index) => setState(() {
-          _pageIndex = index;
+          pageIndex = index;
         }),
         elevation: 0,
-        currentIndex: _pageIndex,
+        currentIndex: pageIndex,
         items: [
           BottomNavigationBarItem(icon: const Icon(Icons.home), label: 'homePage'.tr),
           BottomNavigationBarItem(icon: const Icon(Icons.add), label: 'addNewPlayer'.tr),
@@ -324,7 +350,7 @@ class MemberCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SizedBox(
-          width: context.width / 2,
+          width: Get.width / 2,
           height: 170,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,

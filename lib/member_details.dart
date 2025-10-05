@@ -30,7 +30,7 @@ class _MemberDetailsState extends State<MemberDetails> {
         actions: [
           IconButton(
             onPressed: () async {
-              member = await Get.to(const AddPlayerPage(), arguments: member);
+              member = await Get.to(() => const AddPlayerPage(), arguments: member);
               setState(() {});
             },
             icon: const Icon(Icons.edit),
@@ -47,7 +47,7 @@ class _MemberDetailsState extends State<MemberDetails> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 InkWell(
-                  onTap: () => Get.to(() => ImageViewer(), arguments: member),
+                  onTap: () => Get.to(() => const ImageViewer(), arguments: member),
                   child: Hero(
                     tag: member.phoneNumber,
                     child: Container(

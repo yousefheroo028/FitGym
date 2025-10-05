@@ -9,7 +9,6 @@ import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-
 import 'member.dart';
 
 class AddPlayerPage extends StatefulWidget {
@@ -70,8 +69,10 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
   late DateTime end = DateTime(start.year, start.month, start.day + 29);
 
   Member? member = Get.arguments;
+
   @override
   void initState() {
+    super.initState();
     if (member != null) {
       if (member!.profileImageMetadata != null) _imageMetadata = member!.profileImageMetadata!;
       nameController.text = member!.name;
@@ -82,7 +83,6 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
       start = member!.startDate;
       end = member!.endDate;
     }
-    super.initState();
   }
 
   @override
@@ -95,7 +95,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
       ),
       body: Form(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             spacing: 16.0,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -117,7 +117,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                   ],
-                  keyboardType: TextInputType.numberWithOptions(),
+                  keyboardType: const TextInputType.numberWithOptions(),
                   controller: phoneNumberController,
                   onTapOutside: (event) => FocusScope.of(context).unfocus(),
                   decoration: InputDecoration(
@@ -135,7 +135,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                 ],
-                keyboardType: TextInputType.numberWithOptions(),
+                keyboardType: const TextInputType.numberWithOptions(),
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
@@ -233,29 +233,15 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 child: member != null
                     ? ElevatedButton(
                         onPressed: () async {
-                          await memberBox.put(
-                            member!.phoneNumber,
-                            Member(
-                              name: nameController.text,
-                              startDate: start,
-                              endDate: end,
-                              subscriptionBudget: budgetController.text.toDouble(),
-                              profileImageMetadata: _imageMetadata,
-                              phoneNumber: member!.phoneNumber,
-                            ),
-                          );
-                          Get.back(
-                            result: Member(
-                              name: nameController.text,
-                              startDate: start,
-                              endDate: end,
-                              subscriptionBudget: budgetController.text.toDouble(),
-                              profileImageMetadata: _imageMetadata,
-                              phoneNumber: member!.phoneNumber,
-                            ),
-                          );
+                          member!.name = nameController.text.trim().split(' ').where((element) => element.isNotEmpty).join(' ');
+                          member!.startDate = start;
+                          member!.endDate = end;
+                          member!.subscriptionBudget = budgetController.text.toDouble();
+                          member!.profileImageMetadata = _imageMetadata;
+                          await member!.save();
+                          Get.back(result: member);
                           updateDatabase();
-                          Get.snackbar(
+                          viewSnackBar(
                             'memberEdited'.tr,
                             end.date.difference(DateTime.now().date).inDays >= 0
                                 ? 'daysLeft'.trParams(
@@ -264,11 +250,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                                     },
                                   )
                                 : 'الاشتراك خلصان',
-                            backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                            colorText: Colors.white,
-                            borderRadius: 12,
-                            margin: const EdgeInsets.all(12),
-                            icon: const Icon(Icons.check_circle, color: Colors.white),
+                            true,
                           );
                         },
                         child: Text('editPlayer'.tr),
@@ -290,7 +272,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                             );
                             return;
                           }
-                          if (memberList.map((member) => member.phoneNumber).contains(phoneNumberController.text)) {
+                          if (memberBox.values.map((member) => member.phoneNumber).contains(phoneNumberController.text)) {
                             Get.snackbar(
                               'error'.tr,
                               'existingOne'.tr,
@@ -303,10 +285,21 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                             );
                             return;
                           }
+                          if (phoneNumberController.text.length != 11) {
+                            viewSnackBar('errorInPhoneNumber'.tr, 'phoneNumberLength'.tr, false);
+                            return;
+                          }
+                          if (!(phoneNumberController.text.startsWith('011') ||
+                              phoneNumberController.text.startsWith('012') ||
+                              phoneNumberController.text.startsWith('015') ||
+                              phoneNumberController.text.startsWith('010'))) {
+                            viewSnackBar('errorInPhoneNumber'.tr, 'phoneNumberType'.tr, false);
+                            return;
+                          }
                           await memberBox.put(
                             phoneNumberController.text,
                             Member(
-                              name: nameController.text,
+                              name: nameController.text.trim().split(' ').where((element) => element.isNotEmpty).join(' '),
                               startDate: start,
                               endDate: end,
                               subscriptionBudget: budgetController.text.toDouble(),
@@ -314,6 +307,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                               phoneNumber: phoneNumberController.text,
                             ),
                           );
+                          memberList.assignAll(memberBox.values.toList());
                           updateDatabase();
                           Get.snackbar(
                             'memberAdded'.tr,
