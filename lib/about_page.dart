@@ -38,17 +38,11 @@ class AboutPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 IconButton(
-                  onPressed: () async => await launchUrl(
-                    Uri.parse('https://www.linkedin.com/in/youssefhassanfahmy2004/'),
-                    mode: LaunchMode.externalApplication,
-                  ),
+                  onPressed: linkedIn,
                   icon: const FaIcon(FontAwesomeIcons.linkedinIn),
                 ),
                 IconButton(
-                  onPressed: () async => await launchUrl(
-                    Uri.parse('https://github.com/yousefheroo028/'),
-                    mode: LaunchMode.externalApplication,
-                  ),
+                  onPressed: gitHub,
                   icon: const FaIcon(FontAwesomeIcons.github),
                 ),
               ],
@@ -62,7 +56,7 @@ class AboutPage extends StatelessWidget {
                     trailing: const Icon(Icons.phone),
                     title: const Text('01140169448'),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    onTap: () => launchUrl(mode: LaunchMode.externalApplication, Uri.parse('tel:01140169448')),
+                    onTap: telPhone,
                   ),
                 ),
                 Expanded(
@@ -70,7 +64,7 @@ class AboutPage extends StatelessWidget {
                     trailing: const Icon(FontAwesomeIcons.whatsapp),
                     title: const Text('01140169448'),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    onTap: () => launchUrl(mode: LaunchMode.externalApplication, Uri.parse('https://wa.me/+201140169448')),
+                    onTap: messageWhatsApp,
                   ),
                 ),
               ],
@@ -80,4 +74,10 @@ class AboutPage extends StatelessWidget {
       ),
     );
   }
+
+  void telPhone() => launchUrl(mode: LaunchMode.externalApplication, Uri.parse('tel:01140169448'));
+  void messageWhatsApp() => launchUrl(mode: LaunchMode.externalApplication, Uri.parse('https://wa.me/+201140169448'));
+  void gitHub() async => await launchUrl(Uri.parse('https://github.com/yousefheroo028/'), mode: LaunchMode.externalApplication);
+  void linkedIn() async =>
+      await launchUrl(Uri.parse('https://www.linkedin.com/in/youssefhassanfahmy2004/'), mode: LaunchMode.externalApplication);
 }

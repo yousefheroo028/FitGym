@@ -229,7 +229,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   ],
                 ),
               SizedBox(
-                width: context.width,
+                width: Get.width,
                 child: member != null
                     ? ElevatedButton(
                         onPressed: () async {
@@ -260,29 +260,11 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                           if (nameController.text.isEmpty &&
                               phoneNumberController.text.isEmpty &&
                               budgetController.text.isEmpty) {
-                            Get.snackbar(
-                              'completeData'.tr,
-                              'mustFullData'.tr,
-                              backgroundColor: Colors.red.withValues(alpha: 0.5),
-                              colorText: Colors.white,
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                              ),
-                            );
+                            viewSnackBar('completeData'.tr, 'mustFullData'.tr, false);
                             return;
                           }
                           if (memberBox.values.map((member) => member.phoneNumber).contains(phoneNumberController.text)) {
-                            Get.snackbar(
-                              'error'.tr,
-                              'existingOne'.tr,
-                              backgroundColor: Colors.red.withValues(alpha: 0.5),
-                              colorText: Colors.white,
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                              ),
-                            );
+                            viewSnackBar('error'.tr, 'existingOne'.tr, false);
                             return;
                           }
                           if (phoneNumberController.text.length != 11) {
@@ -309,7 +291,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                           );
                           memberList.assignAll(memberBox.values.toList());
                           updateDatabase();
-                          Get.snackbar(
+                          viewSnackBar(
                             'memberAdded'.tr,
                             end.date.difference(DateTime.now().date).inDays >= 0
                                 ? 'daysLeft'.trParams(
@@ -318,11 +300,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                                     },
                                   )
                                 : 'الاشتراك خلصان',
-                            backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                            colorText: Colors.white,
-                            borderRadius: 12,
-                            margin: const EdgeInsets.all(12),
-                            icon: const Icon(Icons.check_circle, color: Colors.white),
+                            true,
                           );
                           nameController.text = '';
                           phoneNumberController.text = '';

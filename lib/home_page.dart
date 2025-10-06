@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:dartx/dartx.dart';
 import 'package:downloadsfolder/downloadsfolder.dart';
@@ -47,6 +48,7 @@ class _HomePageState extends State<HomePage> {
 
   final filteredY = false.obs;
   final filteredR = false.obs;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,13 +64,7 @@ class _HomePageState extends State<HomePage> {
 
                     if (importFile != null) {
                       // if (!importFile.files.single.path!.split('/').last.startsWith(boxName)) {
-                      //   Get.snackbar(
-                      //     'fileIsNotTrue'.tr,
-                      //     'endsWithHive'.tr,
-                      //     backgroundColor: Colors.red.withValues(alpha: 0.5),
-                      //     colorText: Colors.white,
-                      //     icon: const Icon(Icons.close, color: Colors.white),
-                      //   );
+                      //   viewSnackBar('fileIsNotTrue'.tr, 'endsWithHive'.tr, false);
                       //   return;
                       // }
                       File file = File(importFile.files.single.path!);
@@ -88,13 +84,7 @@ class _HomePageState extends State<HomePage> {
                         filteredR.value = false;
                         memberSearchByNameController.text = '';
                         memberSearchByPhoneNumberController.text = '';
-                        Get.snackbar(
-                          'operationSucceeded'.tr,
-                          'fileIsSelected'.tr,
-                          backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                          colorText: Colors.white,
-                          icon: const Icon(Icons.check_circle, color: Colors.white),
-                        );
+                        viewSnackBar('operationSucceeded'.tr, 'fileIsSelected'.tr, true);
                       }
                     }
                   },
@@ -127,7 +117,6 @@ class _HomePageState extends State<HomePage> {
           SizedBox(
             width: Get.width,
             child: Column(
-              spacing: 8.0,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
@@ -179,123 +168,116 @@ class _HomePageState extends State<HomePage> {
                               .intersection(filteredYMembers));
                         },
                       ),
-                      Obx(
-                        () => Row(
-                          spacing: 16.0,
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.amber.shade600.withValues(alpha: filteredY.value ? 0.2 : 1),
-                                  foregroundColor: Colors.black,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                      Row(
+                        spacing: 16.0,
+                        children: [
+                          Expanded(
+                            child: Obx(() => ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber.shade600.withValues(alpha: filteredY.value ? 0.2 : 1),
+                                    foregroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                                    elevation: 0,
                                   ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                                  elevation: 0,
-                                ),
-                                onPressed: () {
-                                  filteredR.value = false;
-                                  filteredRMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate));
-                                  filteredYMembers.assignAll(
-                                    filteredY.value
-                                        ? memberBox.values.sortedByDescending((memebr) => memebr.startDate)
-                                        : memberBox.values.sortedByDescending((memebr) => memebr.startDate).where(
-                                              (member) => member.getRemainingTime() >= 0 && member.getRemainingTime() < 3,
-                                            ),
-                                  );
-                                  filteredY.value = !filteredY.value;
-                                  memberList.assignAll(filteredName
-                                      .intersection(filteredPhoneNumber)
-                                      .intersection(filteredRMembers)
-                                      .intersection(filteredYMembers));
-                                },
-                                child: Text('soon'.tr),
-                              ),
-                            ),
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red.shade700.withValues(alpha: filteredR.value ? 0.2 : 1),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                  onPressed: () {
+                                    filteredR.value = false;
+                                    filteredY.value = !filteredY.value;
+                                    // Isolate.run(
+                                    //   () {
+                                    filteredRMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate));
+                                    filteredYMembers.assignAll(
+                                      !filteredY.value
+                                          ? memberBox.values.sortedByDescending((memebr) => memebr.startDate)
+                                          : memberBox.values.sortedByDescending((memebr) => memebr.startDate).where(
+                                                (member) => member.getRemainingTime() >= 0 && member.getRemainingTime() < 3,
+                                              ),
+                                    );
+                                    memberList.assignAll(filteredName
+                                        .intersection(filteredPhoneNumber)
+                                        .intersection(filteredRMembers)
+                                        .intersection(filteredYMembers));
+                                    //   },
+                                    // );
+                                  },
+                                  child: Text('soon'.tr),
+                                )),
+                          ),
+                          Expanded(
+                            child: Obx(() => ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red.shade700.withValues(alpha: filteredR.value ? 0.2 : 1),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                                    elevation: 0,
                                   ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                                  elevation: 0,
-                                ),
-                                onPressed: () {
-                                  filteredY.value = false;
-                                  filteredYMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate));
-                                  filteredRMembers.assignAll(
-                                    filteredR.value
-                                        ? memberBox.values.sortedByDescending((memebr) => memebr.startDate)
-                                        : memberBox.values
-                                            .sortedByDescending((memebr) => memebr.startDate)
-                                            .where((member) => member.getRemainingTime() < 0),
-                                  );
-                                  filteredR.value = !filteredR.value;
-                                  memberList.assignAll(filteredName
-                                      .intersection(filteredPhoneNumber)
-                                      .intersection(filteredRMembers)
-                                      .intersection(filteredYMembers));
-                                },
-                                child: Text('expired'.tr),
-                              ),
-                            ),
-                          ],
-                        ),
+                                  onPressed: () {
+                                    filteredY.value = false;
+                                    filteredYMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate));
+                                    filteredRMembers.assignAll(
+                                      filteredR.value
+                                          ? memberBox.values.sortedByDescending((memebr) => memebr.startDate)
+                                          : memberBox.values
+                                              .sortedByDescending((memebr) => memebr.startDate)
+                                              .where((member) => member.getRemainingTime() < 0),
+                                    );
+                                    filteredR.value = !filteredR.value;
+                                    memberList.assignAll(filteredName
+                                        .intersection(filteredPhoneNumber)
+                                        .intersection(filteredRMembers)
+                                        .intersection(filteredYMembers));
+                                  },
+                                  child: Text('expired'.tr),
+                                )),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Obx(() => Text('numberOfMembers'.trParams({"number": memberList.length.toString()}))),
-                      TextButton(
-                        style: const ButtonStyle(padding: WidgetStatePropertyAll(EdgeInsets.all(0.0))),
-                        onPressed: () async {
-                          if (memberBox.values.isEmpty) {
-                            Get.snackbar(
-                              'bosIsNotSaved'.tr,
-                              'boxIsEmpty'.tr,
-                              backgroundColor: Colors.red.withValues(alpha: 0.5),
-                              colorText: Colors.white,
-                              icon: const Icon(Icons.close, color: Colors.white),
-                            );
-                            return;
-                          }
-                          final dir = await getApplicationDocumentsDirectory();
-                          final hiveFile = File('${dir.path}/$boxName.hive');
-                          if (await hiveFile.exists()) {
-                            try {
-                              bool? success = await copyFileIntoDownloadFolder(hiveFile.path, '$boxName.hive');
-                              if (success == true) {
-                                Get.snackbar(
-                                  'fileDownloaded'.tr,
-                                  'newFilePath'.tr,
-                                  backgroundColor: Colors.blue.withValues(alpha: 0.5),
-                                  colorText: Colors.white,
-                                  icon: const Icon(Icons.check_circle, color: Colors.white),
-                                );
-                              }
-                            } catch (e) {
-                              print('Failed to retrieve downloads folder path $e');
+                SizedBox(
+                  height: 24.0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Obx(() => Text('numberOfMembers'.trParams({"number": memberList.length.toString()}))),
+                        TextButton(
+                          style: const ButtonStyle(padding: WidgetStatePropertyAll(EdgeInsets.all(0.0))),
+                          onPressed: () async {
+                            if (memberBox.values.isEmpty) {
+                              viewSnackBar('bosIsNotSaved'.tr, 'boxIsEmpty'.tr, false);
+                              return;
                             }
-                          }
-                        },
-                        child: Text('backup'.tr),
-                      ),
-                    ],
+                            final dir = await getApplicationDocumentsDirectory();
+                            final hiveFile = File('${dir.path}/$boxName.hive');
+                            if (await hiveFile.exists()) {
+                              try {
+                                bool? success = await copyFileIntoDownloadFolder(hiveFile.path, '$boxName.hive');
+                                if (success == true) {
+                                  viewSnackBar('fileDownloaded'.tr, 'newFilePath'.tr, true);
+                                }
+                              } catch (e) {
+                                print('Failed to retrieve downloads folder path $e');
+                              }
+                            }
+                          },
+                          child: Text('backup'.tr),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Expanded(
                   child: Obx(
                     () {
-                      final members = memberList.sortedByDescending((member) => member.startDate);
+                      final members = memberList.sortedByDescending((member) => member.getRemainingTime());
                       return memberList.isNotEmpty
                           ? GridView.builder(
                               cacheExtent: Get.width * 2,
@@ -347,39 +329,36 @@ class MemberCard extends StatelessWidget {
           : member.getRemainingTime() >= 0
               ? Colors.orange.withValues(alpha: 0.2)
               : Colors.red.withValues(alpha: 0.2),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SizedBox(
-          width: Get.width / 2,
-          height: 170,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Hero(
-                tag: member.phoneNumber,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: member.profileImageMetadata != null
-                          ? MemoryImage(member.profileImageMetadata!)
-                          : const AssetImage('assets/icon/placeholder.jpeg'),
-                      fit: BoxFit.cover,
-                    ),
-                    border: Border.all(color: Colors.teal.shade400, width: 3),
+      child: SizedBox(
+        width: Get.width / 2,
+        height: 170,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Hero(
+              tag: member.phoneNumber,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                    image: member.profileImageMetadata != null
+                        ? MemoryImage(member.profileImageMetadata!)
+                        : const AssetImage('assets/icon/placeholder.jpeg'),
+                    fit: BoxFit.cover,
                   ),
+                  border: Border.all(color: Colors.teal.shade400, width: 3),
                 ),
               ),
-              Text(
-                member.name,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
+            ),
+            Text(
+              member.name,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
       ),
     );

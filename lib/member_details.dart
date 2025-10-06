@@ -2,7 +2,9 @@ import 'package:fit_gym/home_page.dart';
 import 'package:fit_gym/image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'add_player_page.dart';
 import 'main.dart';
@@ -25,6 +27,7 @@ class _MemberDetailsState extends State<MemberDetails> {
     final endDate = member.endDate.obs;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(member.name),
         actions: [
@@ -40,129 +43,146 @@ class _MemberDetailsState extends State<MemberDetails> {
       ),
       body: Center(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Column(
-              spacing: 8.0,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                InkWell(
-                  onTap: () => Get.to(() => const ImageViewer(), arguments: member),
-                  child: Hero(
-                    tag: member.phoneNumber,
-                    child: Container(
-                      height: 220,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          image: member.profileImageMetadata != null
-                              ? MemoryImage(member.profileImageMetadata!)
-                              : const AssetImage('assets/icon/placeholder.jpeg'),
-                          fit: BoxFit.contain,
-                        ),
-                        border: Border.all(color: Colors.teal.shade400, width: 1),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Column(
+            spacing: 8.0,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InkWell(
+                onTap: () => Get.to(() => const ImageViewer(), arguments: member),
+                child: Hero(
+                  tag: member.phoneNumber,
+                  child: Container(
+                    height: 220,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: member.profileImageMetadata != null
+                            ? MemoryImage(member.profileImageMetadata!)
+                            : const AssetImage('assets/icon/placeholder.jpeg'),
+                        fit: BoxFit.contain,
                       ),
+                      border: Border.all(color: Colors.teal.shade400, width: 1),
                     ),
                   ),
                 ),
-                const Divider(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'personalInfo'.tr,
-                    ),
-                  ],
+              ),
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'personalInfo'.tr,
+                  ),
+                ],
+              ),
+              Text(
+                'nameOfPlayer'.trParams(
+                  {
+                    "name": member.name,
+                  },
                 ),
-                Text(
-                  'nameOfPlayer'.trParams(
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              Row(
+                children: [
+                  InkWell(
+                    onLongPress: copyPhoneNumber,
+                    child: Text(
+                      'phoneNumberOfPlayer'.trParams(
+                        {
+                          "phoneNumber": member.phoneNumber,
+                        },
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => launchUrl(
+                      mode: LaunchMode.externalApplication,
+                      Uri.parse('https://wa.me/+2${member.phoneNumber}'),
+                    ),
+                    icon: const Icon(FontAwesomeIcons.whatsapp),
+                  ),
+                  IconButton(
+                    onPressed: () => launchUrl(
+                      mode: LaunchMode.externalApplication,
+                      Uri.parse('https://t.me/+2${member.phoneNumber}'),
+                    ),
+                    icon: const Icon(FontAwesomeIcons.telegram),
+                  ),
+                ],
+              ),
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'subscriptionInfo'.tr,
+                  ),
+                ],
+              ),
+              Obx(() {
+                return Text(
+                  'startDateOfPlayer'.trParams(
                     {
-                      "name": member.name,
+                      "date": '${startDate.value.year} / ${startDate.value.month} / ${startDate.value.day}',
                     },
                   ),
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                InkWell(
-                  onLongPress: copyPhoneNumber,
-                  child: Text(
-                    'phoneNumberOfPlayer'.trParams(
-                      {
-                        "phoneNumber": member.phoneNumber,
-                      },
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const Divider(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'subscriptionInfo'.tr,
-                    ),
-                  ],
-                ),
-                Obx(() {
-                  return Text(
-                    'startDateOfPlayer'.trParams(
-                      {
-                        "date": '${startDate.value.year} / ${startDate.value.month} / ${startDate.value.day}',
-                      },
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  );
-                }),
-                Obx(() {
-                  return Text(
-                    'endDateOfPlayer'.trParams(
-                      {
-                        "date": '${endDate.value.year} / ${endDate.value.month} / ${endDate.value.day}',
-                      },
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  );
-                }),
-                Obx(
-                  () => Text(
-                    remainingDays.value >= 0
-                        ? 'daysLeft'.trParams(
-                            {
-                              "days": dayText(remainingDays.value),
-                            },
-                          )
-                        : 'الاشتراك خلص',
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Text(
-                  'subscriptionBudget'.trParams(
+                );
+              }),
+              Obx(() {
+                return Text(
+                  'endDateOfPlayer'.trParams(
                     {
-                      "price": '${member.subscriptionBudget}',
+                      "date": '${endDate.value.year} / ${endDate.value.month} / ${endDate.value.day}',
                     },
                   ),
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                );
+              }),
+              Obx(
+                () => Text(
+                  remainingDays.value >= 0
+                      ? 'daysLeft'.trParams(
+                          {
+                            "days": dayText(remainingDays.value),
+                          },
+                        )
+                      : 'الاشتراك خلص',
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                const Divider(),
-                SizedBox(
-                  width: context.width,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      await member.delete();
-                      updateDatabase();
-                      Get.offAll(() => const HomePage());
-                    },
-                    label: Text('deleteMember'.tr),
-                    icon: const Icon(Icons.delete_outline),
-                  ),
+              ),
+              Text(
+                'subscriptionBudget'.trParams(
+                  {
+                    "price": '${member.subscriptionBudget}',
+                  },
                 ),
-              ],
-            ),
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const Divider(),
+              SizedBox(
+                width: Get.width,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await member.delete();
+                    updateDatabase();
+                    Get.offAll(() => const HomePage());
+                  },
+                  label: Text('deleteMember'.tr),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ),
+            ],
           ),
         ),
       ),
