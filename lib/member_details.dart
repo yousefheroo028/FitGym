@@ -1,4 +1,3 @@
-import 'package:fit_gym/home_page.dart';
 import 'package:fit_gym/image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,22 +18,22 @@ class MemberDetails extends StatefulWidget {
 
 class _MemberDetailsState extends State<MemberDetails> {
   final months = 1.obs;
-  Member member = Get.arguments;
+  final member = Rx<Member>(memberBox.get(Get.arguments)!);
+
   @override
   Widget build(BuildContext context) {
-    final remainingDays = member.getRemainingTime().obs;
-    final startDate = member.startDate.obs;
-    final endDate = member.endDate.obs;
+    final remainingDays = member.value.getRemainingTime().obs;
+    final startDate = member.value.startDate.obs;
+    final endDate = member.value.endDate.obs;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text(member.name),
+        title: Obx(() => Text(member.value.name)),
         actions: [
           IconButton(
             onPressed: () async {
-              member = await Get.to(() => const AddPlayerPage(), arguments: member);
-              setState(() {});
+              member.value = await Get.to(() => const AddPlayerPage(), arguments: member.value.phoneNumber);
             },
             icon: const Icon(Icons.edit),
           ),
@@ -49,84 +48,82 @@ class _MemberDetailsState extends State<MemberDetails> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               InkWell(
-                onTap: () => Get.to(() => const ImageViewer(), arguments: member),
-                child: Hero(
-                  tag: member.phoneNumber,
-                  child: Container(
-                    height: 220,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: member.profileImageMetadata != null
-                            ? MemoryImage(member.profileImageMetadata!)
-                            : const AssetImage('assets/icon/placeholder.jpeg'),
-                        fit: BoxFit.contain,
+                onTap: () => Get.to(() => const ImageViewer(), arguments: member.value.phoneNumber),
+                child: Obx(() => Hero(
+                      tag: member.value.phoneNumber,
+                      child: Container(
+                        height: 220,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: member.value.profileImageMetadata != null
+                                ? MemoryImage(member.value.profileImageMetadata!)
+                                : const AssetImage('assets/icon/placeholder.jpeg'),
+                            fit: BoxFit.contain,
+                          ),
+                          border: Border.all(color: Colors.teal.shade400, width: 1),
+                        ),
                       ),
-                      border: Border.all(color: Colors.teal.shade400, width: 1),
-                    ),
-                  ),
-                ),
+                    )),
               ),
               const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'personalInfo'.tr,
-                  ),
-                ],
+                children: [Text('personalInfo'.tr)],
               ),
-              Text(
-                'nameOfPlayer'.trParams(
-                  {
-                    "name": member.name,
-                  },
+              Obx(
+                () => Text(
+                  'nameOfPlayer'.trParams(
+                    {
+                      "name": member.value.name,
+                    },
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               Row(
                 children: [
                   InkWell(
                     onLongPress: copyPhoneNumber,
                     child: Text(
-                      'phoneNumberOfPlayer'.trParams(
-                        {
-                          "phoneNumber": member.phoneNumber,
-                        },
-                      ),
+                      'phoneNumberOfPlayer'.trParams({"phoneNumber": member.value.phoneNumber}),
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => launchUrl(
-                      mode: LaunchMode.externalApplication,
-                      Uri.parse('https://wa.me/+2${member.phoneNumber}'),
+                  if (isValidPhoneNumber(member.value.phoneNumber)) const Spacer(),
+                  if (isValidPhoneNumber(member.value.phoneNumber))
+                    IconButton(
+                      onPressed: () => launchUrl(
+                        mode: LaunchMode.externalApplication,
+                        Uri.parse('https://wa.me/+2${member.value.phoneNumber}'),
+                      ),
+                      icon: const Icon(FontAwesomeIcons.whatsapp),
                     ),
-                    icon: const Icon(FontAwesomeIcons.whatsapp),
-                  ),
-                  IconButton(
-                    onPressed: () => launchUrl(
-                      mode: LaunchMode.externalApplication,
-                      Uri.parse('https://t.me/+2${member.phoneNumber}'),
+                  if (isValidPhoneNumber(member.value.phoneNumber))
+                    IconButton(
+                      onPressed: () => launchUrl(
+                        mode: LaunchMode.externalApplication,
+                        Uri.parse('https://t.me/+2${member.value.phoneNumber}'),
+                      ),
+                      icon: const Icon(FontAwesomeIcons.telegram),
                     ),
-                    icon: const Icon(FontAwesomeIcons.telegram),
-                  ),
+                  if (isValidPhoneNumber(member.value.phoneNumber))
+                    IconButton(
+                      onPressed: () => launchUrl(
+                          mode: LaunchMode.externalApplication, Uri(scheme: 'tel', path: '+2${member.value.phoneNumber}')),
+                      icon: const Icon(FontAwesomeIcons.phone),
+                    ),
                 ],
               ),
               const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'subscriptionInfo'.tr,
-                  ),
-                ],
+                children: [Text('subscriptionInfo'.tr)],
               ),
-              Obx(() {
-                return Text(
+              Obx(
+                () => Text(
                   'startDateOfPlayer'.trParams(
                     {
                       "date": '${startDate.value.year} / ${startDate.value.month} / ${startDate.value.day}',
@@ -134,10 +131,10 @@ class _MemberDetailsState extends State<MemberDetails> {
                   ),
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                );
-              }),
-              Obx(() {
-                return Text(
+                ),
+              ),
+              Obx(
+                () => Text(
                   'endDateOfPlayer'.trParams(
                     {
                       "date": '${endDate.value.year} / ${endDate.value.month} / ${endDate.value.day}',
@@ -145,8 +142,8 @@ class _MemberDetailsState extends State<MemberDetails> {
                   ),
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                );
-              }),
+                ),
+              ),
               Obx(
                 () => Text(
                   remainingDays.value >= 0
@@ -160,23 +157,25 @@ class _MemberDetailsState extends State<MemberDetails> {
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
-              Text(
-                'subscriptionBudget'.trParams(
-                  {
-                    "price": '${member.subscriptionBudget}',
-                  },
+              Obx(
+                () => Text(
+                  'subscriptionBudget'.trParams(
+                    {
+                      "price": '${member.value.subscriptionBudget}',
+                    },
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const Divider(),
               SizedBox(
                 width: Get.width,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    await member.delete();
+                    await member.value.delete();
                     updateDatabase();
-                    Get.offAll(() => const HomePage());
+                    Get.back(result: member.value);
                   },
                   label: Text('deleteMember'.tr),
                   icon: const Icon(Icons.delete_outline),
@@ -196,16 +195,16 @@ class _MemberDetailsState extends State<MemberDetails> {
     return "${count + 1} يومًا";
   }
 
-  void copyPhoneNumber() => Clipboard.setData(ClipboardData(text: member.phoneNumber)).then(
+  void copyPhoneNumber() => Clipboard.setData(ClipboardData(text: member.value.phoneNumber)).then(
         (value) => viewSnackBar(
           'copied'.trParams(
             {
-              "name": member.name,
+              "name": member.value.name,
             },
           ),
           'numberCopied'.trParams(
             {
-              "name": member.phoneNumber,
+              "name": member.value.phoneNumber,
             },
           ),
           true,

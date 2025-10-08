@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dartx/dartx.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:fit_gym/languages/langs.dart';
 import 'package:flutter/services.dart';
@@ -37,11 +36,11 @@ Future<void> initHive() async {
   memberBox = await Hive.openBox(boxName);
 }
 
-final memberList = memberBox.values.sortedByDescending((member) => member.startDate).toList().obs;
+final memberList = memberBox.values.toList().obs;
 
-void updateDatabase() {
-  memberList.assignAll(memberBox.values.sortedByDescending((member) => member.startDate).toList());
-}
+void updateDatabase() => memberList.assignAll(memberBox.values);
+
+bool isValidPhoneNumber(String phoneNumber) => RegExp(r'^01[0125][0-9]{8}$').hasMatch(phoneNumber);
 
 Future<bool> checkIfAllowed() async {
   final deviceInfo = DeviceInfoPlugin();

@@ -1,3 +1,4 @@
+import 'package:fit_gym/main.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -8,7 +9,7 @@ class ImageViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Member member = Get.arguments;
+    final Member member = memberBox.get(Get.arguments)!;
 
     return Scaffold(
       appBar: AppBar(

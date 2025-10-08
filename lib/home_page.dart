@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:dartx/dartx.dart';
 import 'package:downloadsfolder/downloadsfolder.dart';
@@ -74,11 +73,10 @@ class _HomePageState extends State<HomePage> {
                         final hiveFile = File('${dir.path}/$boxName.hive');
                         await file.copy(hiveFile.path);
                         memberBox = await Hive.openBox<Member>(boxName);
-                        filteredName.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate).toSet().obs);
-                        filteredPhoneNumber
-                            .assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate).toSet().obs);
-                        filteredYMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate).toSet().obs);
-                        filteredRMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate).toSet().obs);
+                        filteredName.assignAll(memberBox.values.toSet());
+                        filteredPhoneNumber.assignAll(memberBox.values.toSet());
+                        filteredYMembers.assignAll(memberBox.values.toSet());
+                        filteredRMembers.assignAll(memberBox.values.toSet());
                         memberList.assignAll(memberBox.values.toList());
                         filteredY.value = false;
                         filteredR.value = false;
@@ -132,8 +130,12 @@ class _HomePageState extends State<HomePage> {
                         ),
                         onTapOutside: (event) => FocusScope.of(context).unfocus(),
                         onChanged: (value) {
+                          value = value
+                              .replaceAll(RegExp(r'[أإآ]'), 'ا')
+                              .replaceAll(RegExp(r'ي(?=\s|$)'), 'ى')
+                              .replaceAll(RegExp(r'ة(?=\s|$)'), 'ه');
+
                           filteredName.assignAll(memberBox.values
-                              .sortedByDescending((memebr) => memebr.startDate)
                               .where((member) => member.name
                                   .startsWith(value.trim().split(' ').where((element) => element.isNotEmpty).join(' ')))
                               .toList());
@@ -158,10 +160,8 @@ class _HomePageState extends State<HomePage> {
                         ],
                         onTapOutside: (event) => FocusScope.of(context).unfocus(),
                         onChanged: (value) {
-                          filteredPhoneNumber.assignAll(memberBox.values
-                              .sortedByDescending((memebr) => memebr.startDate)
-                              .where((member) => member.phoneNumber.startsWith(value))
-                              .toList());
+                          filteredPhoneNumber
+                              .assignAll(memberBox.values.where((member) => member.phoneNumber.startsWith(value)).toList());
                           memberList.assignAll(filteredName
                               .intersection(filteredPhoneNumber)
                               .intersection(filteredRMembers)
@@ -176,31 +176,25 @@ class _HomePageState extends State<HomePage> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.amber.shade600.withValues(alpha: filteredY.value ? 0.2 : 1),
                                     foregroundColor: Colors.black,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    animationDuration: const Duration(milliseconds: 0),
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                                     elevation: 0,
                                   ),
-                                  onPressed: () {
+                                  onPressed: () async {
                                     filteredR.value = false;
                                     filteredY.value = !filteredY.value;
-                                    // Isolate.run(
-                                    //   () {
-                                    filteredRMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate));
+                                    filteredRMembers.assignAll(memberBox.values);
                                     filteredYMembers.assignAll(
                                       !filteredY.value
-                                          ? memberBox.values.sortedByDescending((memebr) => memebr.startDate)
-                                          : memberBox.values.sortedByDescending((memebr) => memebr.startDate).where(
-                                                (member) => member.getRemainingTime() >= 0 && member.getRemainingTime() < 3,
-                                              ),
+                                          ? memberBox.values
+                                          : memberBox.values
+                                              .where((member) => member.getRemainingTime() >= 0 && member.getRemainingTime() < 3),
                                     );
                                     memberList.assignAll(filteredName
                                         .intersection(filteredPhoneNumber)
                                         .intersection(filteredRMembers)
                                         .intersection(filteredYMembers));
-                                    //   },
-                                    // );
                                   },
                                   child: Text('soon'.tr),
                                 )),
@@ -209,22 +203,19 @@ class _HomePageState extends State<HomePage> {
                             child: Obx(() => ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red.shade700.withValues(alpha: filteredR.value ? 0.2 : 1),
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
+                                    animationDuration: const Duration(milliseconds: 0),
+                                    foregroundColor: filteredR.value ? Colors.black : Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                                     elevation: 0,
                                   ),
                                   onPressed: () {
                                     filteredY.value = false;
-                                    filteredYMembers.assignAll(memberBox.values.sortedByDescending((memebr) => memebr.startDate));
+                                    filteredYMembers.assignAll(memberBox.values);
                                     filteredRMembers.assignAll(
                                       filteredR.value
-                                          ? memberBox.values.sortedByDescending((memebr) => memebr.startDate)
-                                          : memberBox.values
-                                              .sortedByDescending((memebr) => memebr.startDate)
-                                              .where((member) => member.getRemainingTime() < 0),
+                                          ? memberBox.values
+                                          : memberBox.values.where((member) => member.getRemainingTime() < 0),
                                     );
                                     filteredR.value = !filteredR.value;
                                     memberList.assignAll(filteredName
@@ -274,25 +265,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                Expanded(
-                  child: Obx(
-                    () {
-                      final members = memberList.sortedByDescending((member) => member.getRemainingTime());
-                      return memberList.isNotEmpty
-                          ? GridView.builder(
-                              cacheExtent: Get.width * 2,
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-                              itemCount: members.length,
-                              itemBuilder: (_, i) => InkWell(
-                                onTap: () => Get.to(() => const MemberDetails(), arguments: members[i]),
-                                borderRadius: BorderRadius.circular(12),
-                                child: MemberCard(member: members[i]),
-                              ),
-                            )
-                          : Text('noMatchedPlayer'.tr);
-                    },
-                  ),
-                ),
+                Expanded(child: Obx(playersList)),
               ],
             ),
           ),
@@ -313,6 +286,30 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  Widget playersList() {
+    final members = memberList.sortedByDescending((member) => member.getRemainingTime());
+    return members.isNotEmpty
+        ? GridView.builder(
+            cacheExtent: Get.width * 2,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+            itemCount: members.length,
+            itemBuilder: (_, i) => InkWell(
+              onTap: () async {
+                final Member? removedMember = await Get.to(() => const MemberDetails(), arguments: members[i].phoneNumber);
+                if (removedMember != null) {
+                  filteredName.remove(removedMember);
+                  memberList.assignAll(
+                    filteredName.intersection(filteredPhoneNumber).intersection(filteredRMembers).intersection(filteredYMembers),
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: MemberCard(member: members[i]),
+            ),
+          )
+        : Text('noMatchedPlayer'.tr);
   }
 }
 

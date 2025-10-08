@@ -39,7 +39,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
     super.dispose();
   }
 
-  Uint8List? _imageMetadata;
+  final _imageMetadata = Rxn<Uint8List>();
 
   Future<void> _pickImageFromCamera() async {
     final picker = ImagePicker();
@@ -50,9 +50,8 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
       final fileName = imageFile.path.split('/').last;
       final savedImage = await imageFile.copy('${appDir.path}/$fileName');
       await GallerySaver.saveImage(savedImage.path);
-      _imageMetadata = await pickedFile.readAsBytes();
+      _imageMetadata.value = await pickedFile.readAsBytes();
     }
-    setState(() {});
   }
 
   Future<void> _pickImageFromGallery() async {
@@ -60,28 +59,28 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery, maxHeight: 480, maxWidth: 480);
 
     if (pickedFile != null) {
-      _imageMetadata = await pickedFile.readAsBytes();
+      _imageMetadata.value = await pickedFile.readAsBytes();
     }
-    setState(() {});
   }
 
   DateTime start = DateTime.now();
   late DateTime end = DateTime(start.year, start.month, start.day + 29);
 
-  Member? member = Get.arguments;
+  final member = Rxn<Member>(Get.arguments != null ? memberBox.get(Get.arguments) : null);
 
   @override
   void initState() {
     super.initState();
-    if (member != null) {
-      if (member!.profileImageMetadata != null) _imageMetadata = member!.profileImageMetadata!;
-      nameController.text = member!.name;
-      phoneNumberController.text = member!.phoneNumber;
-      budgetController.text = member!.subscriptionBudget.toInt().toString();
-      startDateController.text = '${member!.startDate.day} - ${member!.startDate.month} - ${member!.startDate.year}';
-      endDateController.text = '${member!.endDate.day} - ${member!.endDate.month} - ${member!.endDate.year}';
-      start = member!.startDate;
-      end = member!.endDate;
+    if (member.value != null) {
+      if (member.value!.profileImageMetadata != null) _imageMetadata.value = member.value!.profileImageMetadata!;
+      nameController.text = member.value!.name;
+      phoneNumberController.text = member.value!.phoneNumber;
+      budgetController.text = member.value!.subscriptionBudget.toInt().toString();
+      startDateController.text =
+          '${member.value!.startDate.day} - ${member.value!.startDate.month} - ${member.value!.startDate.year}';
+      endDateController.text = '${member.value!.endDate.day} - ${member.value!.endDate.month} - ${member.value!.endDate.year}';
+      start = member.value!.startDate;
+      end = member.value!.endDate;
     }
   }
 
@@ -91,13 +90,13 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
-        title: Text(member != null ? 'تعديل بيانات ${member!.name}' : 'إضافة لاعب جديد'),
+        title: Text(member.value != null ? 'تعديل بيانات ${member.value!.name}' : 'إضافة لاعب جديد'),
       ),
       body: Form(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(8.0),
           child: Column(
-            spacing: 16.0,
+            spacing: 12.0,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               TextFormField(
@@ -106,17 +105,12 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                 decoration: InputDecoration(
                   hintText: 'enterName'.tr,
                   fillColor: Colors.grey.withValues(alpha: 0.1),
-                  suffixIcon: Icon(
-                    Icons.text_fields,
-                    color: Colors.grey.withValues(alpha: 0.6),
-                  ),
+                  suffixIcon: Icon(Icons.text_fields, color: Colors.grey.withValues(alpha: 0.6)),
                 ),
               ),
-              if (member == null)
+              if (member.value == null)
                 TextFormField(
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   keyboardType: const TextInputType.numberWithOptions(),
                   controller: phoneNumberController,
                   onTapOutside: (event) => FocusScope.of(context).unfocus(),
@@ -215,32 +209,35 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                   ),
                 ],
               ),
-              if (_imageMetadata != null)
-                Column(
-                  children: [
-                    Image.memory(_imageMetadata!, height: 200),
-                    IconButton(
-                      onPressed: () {
-                        _imageMetadata = null;
-                        setState(() {});
-                      },
-                      icon: const Icon(Icons.close),
-                    )
-                  ],
-                ),
+              Obx(
+                () => _imageMetadata.value != null
+                    ? Column(
+                        children: [
+                          Image.memory(_imageMetadata.value!, height: 200),
+                          IconButton(
+                            onPressed: () {
+                              _imageMetadata.value = null;
+                            },
+                            icon: const Icon(Icons.close),
+                          )
+                        ],
+                      )
+                    : const SizedBox.shrink(),
+              ),
               SizedBox(
                 width: Get.width,
-                child: member != null
+                child: member.value != null
                     ? ElevatedButton(
                         onPressed: () async {
-                          member!.name = nameController.text.trim().split(' ').where((element) => element.isNotEmpty).join(' ');
-                          member!.startDate = start;
-                          member!.endDate = end;
-                          member!.subscriptionBudget = budgetController.text.toDouble();
-                          member!.profileImageMetadata = _imageMetadata;
-                          await member!.save();
-                          Get.back(result: member);
+                          member.value!.name =
+                              nameController.text.trim().split(' ').where((element) => element.isNotEmpty).join(' ');
+                          member.value!.startDate = start;
+                          member.value!.endDate = end;
+                          member.value!.subscriptionBudget = budgetController.text.toDouble();
+                          member.value!.profileImageMetadata = _imageMetadata.value;
+                          await member.value!.save();
                           updateDatabase();
+                          Get.back(result: member.value);
                           viewSnackBar(
                             'memberEdited'.tr,
                             end.date.difference(DateTime.now().date).inDays >= 0
@@ -252,6 +249,13 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                                 : 'الاشتراك خلصان',
                             true,
                           );
+                          member.value = null;
+                          nameController.text = '';
+                          phoneNumberController.text = '';
+                          budgetController.text = '';
+                          startDateController.text = '';
+                          endDateController.text = '';
+                          _imageMetadata.value = null;
                         },
                         child: Text('editPlayer'.tr),
                       )
@@ -285,11 +289,10 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                               startDate: start,
                               endDate: end,
                               subscriptionBudget: budgetController.text.toDouble(),
-                              profileImageMetadata: _imageMetadata,
+                              profileImageMetadata: _imageMetadata.value,
                               phoneNumber: phoneNumberController.text,
                             ),
                           );
-                          memberList.assignAll(memberBox.values.toList());
                           updateDatabase();
                           viewSnackBar(
                             'memberAdded'.tr,
@@ -307,8 +310,7 @@ class _AddPlayerPageState extends State<AddPlayerPage> {
                           budgetController.text = '';
                           startDateController.text = '';
                           endDateController.text = '';
-                          _imageMetadata = null;
-                          setState(() {});
+                          _imageMetadata.value = null;
                         },
                         child: Text('addNewPlayer'.tr),
                       ),
