@@ -5,6 +5,21 @@
 
 ---
 
+## 🖼️ لقطات من التطبيق (Screenshots)
+
+<div align="center">
+  <img src="https://github.com/yousefheroo028/fit-gym-app/blob/main/assets/screenshots/banner.png" width="800" alt="Fit Gym Banner"/>
+</div>
+
+<div align="center">
+  <img src="https://github.com/yousefheroo028/fit-gym-app/blob/main/assets/screenshots/details.jpg" width="350" alt="Member Details"/>
+  <img src="https://github.com/yousefheroo028/fit-gym-app/blob/main/assets/screenshots/home.jpg" width="350" alt="Home Page"/>
+</div>
+
+> ✨ *Work becomes easier with Fit Gym App!*
+
+---
+
 ## 🚀 المميزات (Features)
 
 ### 👤 إدارة الأعضاء
