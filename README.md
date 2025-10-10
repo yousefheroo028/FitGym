@@ -8,12 +8,13 @@
 ## 🖼️ لقطات من التطبيق (Screenshots)
 
 <div align="center">
-  <img src="https://github.com/yousefheroo028/fit-gym-app/blob/main/assets/screenshots/banner.png" width="800" alt="Fit Gym Banner"/>
+  <img src="https://github.com/yousefheroo028/FitGym/blob/master/assets/banner.png" width="800" alt="Fit Gym Banner"/>
 </div>
 
 <div align="center">
-  <img src="https://github.com/yousefheroo028/fit-gym-app/blob/main/assets/screenshots/details.jpg" width="350" alt="Member Details"/>
-  <img src="https://github.com/yousefheroo028/fit-gym-app/blob/main/assets/screenshots/home.jpg" width="350" alt="Home Page"/>
+  <img src="https://github.com/yousefheroo028/FitGym/blob/master/assets/member_details.jpg" width="350" alt="Member Details"/>
+  <img src="https://github.com/yousefheroo028/FitGym/blob/master/assets/home_page.jpg" width="350" alt="Home Page"/>
+  <img src="https://github.com/yousefheroo028/FitGym/blob/master/assets/add_member_page.jpg" width="350" alt="Home Page"/>
 </div>
 
 > ✨ *Work becomes easier with Fit Gym App!*
@@ -89,4 +90,4 @@
 ## 🧑‍💻 المطور
 **Youssef Hassan**  
 📧 Email: youssef.hassan.191204@email.com  
-💼 GitHub: [https://github.com/yousefheroo028](https://github.com/yousefheroo028)
+💼 GitHub: https://github.com/yousefheroo028
